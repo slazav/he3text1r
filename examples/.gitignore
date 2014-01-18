@@ -1,0 +1,5 @@
+*.o
+test_c
+test_f77
+test_f90
+*.dat

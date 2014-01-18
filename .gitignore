@@ -1,0 +1,7 @@
+*.o
+*.a
+*.so
+*.mexglx
+*.mex
+text1r.h
+text1r.fh

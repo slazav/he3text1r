@@ -1,0 +1,181 @@
+\documentclass[a4paper]{article}
+
+\usepackage{amssymb}
+\usepackage{euscript}
+\usepackage{graphicx}
+\graphicspath{{pics/}}
+\usepackage{color}
+\usepackage{epsfig}
+\usepackage{fullpage}
+\usepackage{verbatim}
+
+\begin{document}
+
+\title{{\tt text1r} --- calculate 1D radial texture}
+\date{\today}
+\author{}
+\maketitle
+
+\def\sp{\sqrt{5}}
+\def\st{\sqrt{3}}
+\def\ddd#1#2{\frac{\partial #1}{\partial #2}}
+
+This functions calculate 1D texture in $^3$He-B in a cylindrically
+symmetric geometry. Code and ideas came from ROTA programs (by J.Kopu,
+S.Autti, ...). Interfaces for C, F, F90, Matlab, and Octave languages
+are available.
+
+Sum of following energy terms is minimized:
+
+\def\bn{{\bf n}}
+\def\bH{{\bf H}}
+\def\divn{(\nabla\cdot\bn)}
+\def\rotn{(\nabla\times\bn)}
+\def\grn{\nabla\bn}
+Magnetic energy an a uniform field along $z$ axis:
+$$
+F_{DH} = - a \int_V (\bn\cdot\bH)^2 = -a H_z^2 \int_V \sin^2\beta_N
+$$
+
+Gradient energy:
+$$
+F = \frac{1}{13}\ \frac{\xi_H^2}{R^2}\int_V  [ 4 (4+\delta) (\grn)^2
+  - (2+\delta) / 2  (\st \divn + \sp n \rotn^2 ]
+$$
+
+Spin-orbit energy for precessing magnetization:
+$$
+F = \chi \frac{\Omega^2_B}{\gamma^2} \int_V  \Psi^2 \sin^2\beta_N
+$$
+
+Superflow energy:
+$$
+F_{HV} = - \lambda_{HV} \int_V [\bH \cdot R \cdot ({\bf v_s-v_n})]^2
+$$
+
+Vortex energy:
+$$
+F = \frac15\ \frac{\lambda}{\Omega} \int_V  \Omega_v [\bH \cdot R \cdot {\bf l_v}]^2
+$$
+
+Surface energy:
+$$
+F = - \frac{5}{16}\ \frac{d}{aR} \int_S (\sp n_z n_r - \st n_f)^2
+$$
+$$
+F = \frac{2}{13}\ \frac{\xi_H^2}{R^2} \int_S ( 2 (2 + \delta) - \lambda_{SG})  \sin^2\beta
+$$
+
+Angle $\theta$ in order parameter is fixed at $\cos^{-1}(-1/4)$.
+
+
+\section*{Usage}
+
+\subsection*{fortran}
+
+A global structure is used to keep parameters and results. Number of points is
+hardcoded into the program.
+
+
+To specify textural parameters a global structure {\tt\bf text1r\_pars}
+is used:
+
+\begin{verbatim}
+
+rr(MAXN)  // r grid [cm]
+an(MAXN)  // azimuthal angle of n vector [degrees]
+bn(MAXN)  // polar angle of n vector [degrees]
+a         // Textural dipole-field parameter a [erg/cm^3 G^-2]
+H         // Magnetic field [G]
+R   // Cell radius [cm]
+lg1 // Textural parameter lambda_g1 [erg/cm]
+lg2 // Textural parameter lambda_g2 [erg/cm]
+
+lhv // Textural parameter lambda_HV [erg/cm3 1/G2 1/(cm/s)^2]
+lsg // Textural parameter lambda_SG [???]
+
+ld  // Textural parameter lambda_D [erg/cm^3]
+lo  // Textural parameter lambda/omega [s/rad]
+
+d   // Textural surface parameter d [erg/cm^2 G^-2]
+
+vr(MAXN)  // velocity profile
+vz(MAXN)
+vf(MAXN)
+
+lr(MAXN)  // vortex polarization
+lz(MAXN)
+lf(MAXN)
+
+w(MAXN)      // vortex dencity, ??
+apsi(MAXN)   // magnon wavefunction amplitude
+
+\begin{verbatim}
+struct text1r_pars_t{
+  double alpha_n[MAXN], beta_n[MAXN]; /* azimuthal and polar angles of n vector
+                                         (initial conditions and final result) */
+} text1r_pars;
+\end{verbatim}
+
+In fortran one sholud use header file {\tt text1r.fh} where common block
+
+Function {\tt\bf text1r\_pars\_init} is used to initialize {\tt\bf text1r\_pars}
+structure.
+
+\eject
+\section*{Technical details}
+
+\subsection*{Program structure}
+
+\begin{itemize}
+\item {\tt esurf} and {\tt ebulk} subroutines calculate surface and
+bulk energy and its derivatives as a function of texture ($\alpha$ and
+$\beta$) and texture gradients ($\partial\alpha/\partial r$,
+$\partial\beta/\partial r$ etc.). Texture can be represented in various
+forms ($\alpha, \beta$, or $\bf n$, or $R_{ij}$).
+
+\item {\tt egrad} subroutine calculates total energy as integral of bulk energy over volume
+plus integral of surface energy over surface and its derivatives as a
+function of texture and texture gradients at the whole grid.
+
+\item {\tt mfunc} is a wrapper for {\tt egrad}. Texture is represented
+as 1-d array sutable for minimization (see below).
+
+\item {\tt x2text} and {text2x} subroutines convert two representations of the texture.
+
+\item {\tt minimize} subroutine does minimization.
+\end{itemize}
+
+
+\subsection*{Texture representation for minimization}
+
+We don't want to minimize directly $F(n_r, n_z, n_f)$ because additional
+condition $n_i n_i = 1$ should be taken into account. We also don't want
+to minimize $F(\alpha, \beta$) because if $\beta=0$ then $\alpha$
+is not defined.
+
+One posibility is to use a projection of the $\bf n$ sphere into a plane
+$z=0$ from a $z=-1, r=0$ point:
+
+$$
+u=\frac{n_r}{1+n_z}, \qquad  v=\frac{n_f}{1+n_z}.
+$$
+
+Inverse transformation is
+$$
+n_z = \frac{1-u^2-v^2}{1+u^2+v^2},\qquad
+n_r = \frac{2u}{1+u^2+v^2},\qquad
+n_f = \frac{2v}{1+u^2+v^2},\qquad
+$$
+
+We also need
+$$
+\ddd{E}{u} = \ddd{E}{\alpha}\ddd{a}{u} + \ddd{E}{\beta}\ddd{b}{u}
+$$
+$$
+\ddd{E}{v} = \ddd{E}{\alpha}\ddd{a}{v} + \ddd{E}{\beta}\ddd{b}{v}
+$$
+
+We don't want to minimaze $r=0$ point where $n_z=1$ because of cyllindrical symmetry.
+\end{document}
+

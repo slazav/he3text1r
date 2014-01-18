@@ -1,0 +1,468 @@
+\documentclass[a4paper]{article}
+
+\usepackage{amssymb}
+\usepackage{euscript}
+\usepackage{graphicx}
+\graphicspath{{pics/}}
+\usepackage{color}
+\usepackage{epsfig}
+\usepackage{fullpage}
+\usepackage{verbatim}
+
+\begin{document}
+
+\def\ct{\cos\theta}
+\def\st{\sin\theta}
+
+\def\cts{\cos^2\theta}
+\def\sts{\sin^2\theta}
+
+\def\ca{\cos\alpha}
+\def\sa{\sin\alpha}
+
+\def\cb{\cos\beta}
+\def\sb{\sin\beta}
+
+\def\bn{{\bf n}}
+\def\bH{{\bf H}}
+\def\bvsn{{(\bf v_s - v_n)}}
+
+\subsection{calculation of energy terms}
+
+$$
+R_{ij} = \ct\ \delta_{ij} + (1-\ct) n_i n_j - \st\ e_{ijk} n_k
+$$
+
+$$
+H_i R_{ij} = \ct\ \bH + (1-\ct) (\bn\cdot\bH) \bn - \st\ (\bn\times\bH)
+$$
+
+%$$
+%=
+%\left(
+%\begin{array}{l}
+% \ct\ H_z + (1-\ct) (n_x H_x + n_y H_y + n_z H_z) n_x - \st\ (n_y H_z - n_z H_y)\\
+% \ct\ H_y + (1-\ct) (n_x H_x + n_y H_y + n_z H_z) n_y - \st\ (n_z H_x - n_x H_z)\\
+% \ct\ H_z + (1-\ct) (n_x H_x + n_y H_y + n_z H_z) n_z - \st\ (n_x H_y - n_y H_x)\\
+%\end{array}
+%\right)
+%$$
+
+$$
+=
+H_x \left(
+\begin{array}{l}
+ \ct + (1-\ct) n_x^2\\
+ (1-\ct) n_x n_y - \st\ n_z\\
+ (1-\ct) n_x n_z + \st\ n_y\\
+\end{array}
+\right)
++H_y \left(
+\begin{array}{l}
+ (1-\ct) n_y n_x + \st\ n_z\\
+ \ct + (1-\ct) n_y^2\\
+ (1-\ct) n_y n_z - \st\ n_x\\
+\end{array}
+\right)
++H_z \left(
+\begin{array}{l}
+ (1-\ct) n_z n_x - \st\ n_y\\
+ (1-\ct) n_z n_y + \st\ n_x\\
+ \ct + (1-\ct) n_z^2\\
+\end{array}
+\right)
+$$
+
+\begin{eqnarray*}
+ n_x &=& -\sb\ca\\
+ n_y &=& \sb\sa\\
+ n_z &=& \cb\\
+\end{eqnarray*}
+
+$$
+H_i R_{ij} =
+H_x \left(
+\begin{array}{l}
+ (1-\ct) \sb^2\ca^2 + \ct\\
+ -(1-\ct) \sb^2\ca\sa - \st\cb\\
+ -(1-\ct) \sb\ca\cb + \st\sb\sa\\
+\end{array}
+\right)
++H_y \left(
+\begin{array}{l}
+ -(1-\ct) \sb^2\sa\ca + \st\cb\\
+ \ct + (1-\ct) \sb^2\sa^2\\
+ (1-\ct) \sb\sa\cb +\st\sb\ca\\
+\end{array}
+\right)
++H_z \left(
+\begin{array}{l}
+ -(1-\ct) \cb\sb\ca - \st\sb\sa\\
+ (1-\ct) \cb\sb\sa - \st\sb\ca\\
+ \ct + (1-\ct) \cb^2\\
+\end{array}
+\right)
+$$
+
+
+
+
+
+$$
+\frac{\partial R_{ij}}{\partial x_a} \quad=\quad
+\frac{\partial R_{ij}}{\partial n_b} (\nabla_a n_b) +
+\frac{\partial R_{ij}}{\partial \theta} (\nabla_a \theta) =
+$$
+$$
+\left[  (1-\ct) (\delta_{ib} n_j + \delta_{jb} n_i) - \st\ e_{ijb}
+\right] (\nabla_a n_b) +
+\left[  \st\ (n_i n_j - \delta_{ij}) - \ct\ e_{ijk} n_k
+\right] (\nabla_a \theta)
+$$
+
+Dipole energy:
+$$
+F_D = \lambda_D\int_V (R_{ii}R_{jj} + R_{ij}R_{ji}) =
+      4\lambda_D\int_V \ct(1+2\ct) =
+      8\lambda_D\int_V (\ct+1/4)^2 + {\rm const.}
+$$
+
+Dipole-field energy:
+$$
+F_{DH} = - a \int_V (\bn\cdot\bH)^2
+$$
+
+Dipole-velocity energy (much smaller then $F_{HV}$ at $H \sim 200$~G):
+
+$$
+F_{DV} = - \lambda_{DV} \int_V [\bn\cdot\bvsn]^2
+$$
+
+Field-velocity energy. $\lambda_{HV1}=0$ (particle-hole symmetry):
+$$
+F_{HV} = - \lambda_{HV} \int_V [\bH\cdot R \cdot \bvsn]^2
+$$
+
+$$
+F_{HV1} = - \lambda_{HV1} \int_V \bH\cdot R \cdot \nabla\times\bn
+$$
+
+Gradient energy:
+
+$$
+F_{G} =  \int_V \left[
+\lambda_{G1}
+\frac{\partial R_{ai}}{\partial x_i}
+\frac{\partial R_{aj}}{\partial x_j} +
+\lambda_{G2}
+\frac{\partial R_{aj}}{\partial x_i}
+\frac{\partial R_{ai}}{\partial x_j}
+\right]
+= \lambda_{G2}
+\int_V \left[
+(2+\delta)
+\frac{\partial R_{ai}}{\partial x_i}
+\frac{\partial R_{aj}}{\partial x_j} +
+\frac{\partial R_{aj}}{\partial x_i}
+\frac{\partial R_{ai}}{\partial x_j}
+\right]
+$$
+
+% $$
+% \partial R_{ai} / \partial x_i =
+% \left[  (1-\ct) (\delta_{ab} n_i + \delta_{ib} n_a) - \st\ e_{aib}
+%   \right] (\nabla_i n_b) +
+% \left[  \st\ (n_a n_i - \delta_{ai}) - \ct\ e_{aik} n_k
+%   \right] (\nabla_i \theta)
+% $$
+% $$
+% \partial R_{aj} / \partial x_j =
+% \left[  (1-\ct) (\delta_{ab} n_j + \delta_{jb} n_a) - \st\ e_{ajb}
+% \right] (\nabla_j n_b) +
+% \left[  \st\ (n_a n_j - \delta_{aj}) - \ct\ e_{ajk} n_k
+% \right] (\nabla_j \theta)
+% $$
+% $$
+% \partial R_{aj} / \partial x_i =
+% \left[  (1-\ct) (\delta_{ab} n_j + \delta_{jb} n_a) - \st\ e_{ajb}
+% \right] (\nabla_i n_b) +
+% \left[  \st\ (n_a n_j - \delta_{aj}) - \ct\ e_{ajk} n_k
+% \right] (\nabla_i \theta)
+% $$
+% $$
+% \partial R_{ai} / \partial x_j =
+% \left[  (1-\ct) (\delta_{ab} n_i + \delta_{ib} n_a) - \st\ e_{aib}
+% \right] (\nabla_j n_b) +
+% \left[  \st\ (n_a n_i - \delta_{ai}) - \ct\ e_{aik} n_k
+% \right] (\nabla_j \theta)
+% $$
+
+%%%%%%%%%%%%%%%%
+%\begin{eqnarray*}
+%\frac{\partial R_{ai}}{\partial x_i}
+%\frac{\partial R_{aj}}{\partial x_j} &=&\\
+%&=&
+%[ (1-\ct) (\delta_{ab_1} n_i + \delta_{ib_1} n_a) - \st\ e_{aib_1}]
+%[ (1-\ct) (\delta_{ab_2} n_j + \delta_{jb_2} n_a) - \st\ e_{ajb_2}]
+% (\nabla_i n_{b_1})(\nabla_j n_{b_2})\\
+%&+&
+%[ (1-\ct) (\delta_{ab} n_i + \delta_{ib} n_a) - \st\ e_{aib}]
+%[ \st\ (n_a n_j - \delta_{aj}) - \ct\ e_{ajk} n_k ]
+% (\nabla_i n_b)(\nabla_j \theta)\\
+%&+&
+%[ \st\ (n_a n_i - \delta_{ai}) - \ct\ e_{aik} n_k]
+%[ (1-\ct) (\delta_{ab} n_j + \delta_{jb} n_a) - \st\ e_{ajb} ]
+% (\nabla_i \theta)(\nabla_j n_b)\\
+%&+&
+%[ \st\ (n_a n_i - \delta_{ai}) - \ct\ e_{aik} n_k]
+%[ \st\ (n_a n_j - \delta_{aj}) - \ct\ e_{ajk} n_k ]
+% (\nabla_i \theta) (\nabla_j \theta)\\
+%\end{eqnarray*}
+%%%%%%%%%%%%%%%%
+%\begin{eqnarray*}
+%\frac{\partial R_{aj}}{\partial x_i}
+%\frac{\partial R_{ai}}{\partial x_j} &=&\\
+%&=&
+%[ (1-\ct) (\delta_{ab_1} n_j + \delta_{jb_1} n_a) - \st\ e_{ajb_1} ]
+%[ (1-\ct) (\delta_{ab_2} n_i + \delta_{ib_2} n_a) - \st\ e_{aib_2} ]
+% (\nabla_i n_{b_1}) (\nabla_j n_{b_2})\\
+%&+&
+%[ (1-\ct) (\delta_{ab} n_j + \delta_{jb} n_a) - \st\ e_{ajb} ]
+%[  \st\ (n_a n_i - \delta_{ai}) - \ct\ e_{aik} n_k ]
+% (\nabla_i n_b) (\nabla_j \theta)\\
+%&+&
+%[  (1-\ct) (\delta_{ab} n_i + \delta_{ib} n_a) - \st\ e_{aib} ]
+%[  \st\ (n_a n_j - \delta_{aj}) - \ct\ e_{ajk} n_k ]
+% (\nabla_j n_b) (\nabla_i \theta)\\
+%&+&
+%[  \st\ (n_a n_j - \delta_{aj}) - \ct\ e_{ajk} n_k ]
+%[  \st\ (n_a n_i - \delta_{ai}) - \ct\ e_{aik} n_k ]
+% (\nabla_i \theta) (\nabla_j \theta)\\
+%\end{eqnarray*}
+
+% in 2 and 3 terms j<->i
+
+%%%%%%%%%%%%%%%%%
+%\begin{eqnarray*}
+%\frac{\partial R_{ai}}{\partial x_i}
+%\frac{\partial R_{aj}}{\partial x_j} &=&\\
+%&=&
+%[
+%(1-\ct)^2 (\delta_{ab_1} n_i + \delta_{ib_1} n_a) (\delta_{ab_2} n_j + \delta_{jb_2} n_a)
+%- \st(1-\ct) ( e_{b_1jb_2} n_i
+%             + e_{b_2ib_1} n_j
+%             + \delta_{ib_1} e_{ajb_2} n_a
+%             + \delta_{jb_2} e_{aib_1} n_a)
+%+ \sts\ (\delta_{ij} \delta_{b_1b_2} - \delta_{ib_2} \delta_{jb_1})
+%]
+% (\nabla_i n_{b_1})(\nabla_j n_{b_2})\\
+%&+&
+%2 [
+% \st(1-\ct)(n_b n_j - \delta_{bj}) n_i
+%-\ct(1-\ct) e_{bjk} n_k n_i
+%-\sts\ (n_a n_j e_{aib} - e_{jib})
+%+\st\ct\ (\delta_{ij} n_b - \delta_{jb} n_i)
+%]
+% (\nabla_i n_b)(\nabla_j \theta)\\
+%&+&
+%[\delta_{ij} - n_i n_j]
+% (\nabla_i \theta) (\nabla_j \theta)\\
+%\end{eqnarray*}
+%%%%%%%%%%%%%%%%%
+%\begin{eqnarray*}
+%\frac{\partial R_{aj}}{\partial x_i}
+%\frac{\partial R_{ai}}{\partial x_j} &=&\\
+%&=&
+%[
+%(1-\ct)^2 (\delta_{ab_1} n_j + \delta_{jb_1} n_a) (\delta_{ab_2} n_i + \delta_{ib_2} n_a)
+%- \st(1-\ct) ( e_{b_1ib_2} n_j
+%             + e_{b_2jb_1} n_i
+%             + \delta_{jb_1} e_{aib_2} n_a
+%             + \delta_{ib_2} e_{ajb_1} n_a)
+%+ \sts\ (\delta_{ij} \delta_{b_1b_2} - \delta_{jb_2} \delta_{ib_1})
+%]
+% (\nabla_i n_{b_1})(\nabla_j n_{b_2})\\
+%&+&
+%2 [
+% \st(1-\ct)(n_b n_i - \delta_{bi}) n_j
+%-\ct(1-\ct) e_{bik} n_k n_j
+%-\sts\ (n_a n_i e_{ajb} - e_{ijb})
+%+\st\ct\ (\delta_{ij} n_b - \delta_{ib} n_j)
+%]
+% (\nabla_j n_b)(\nabla_i \theta)\\
+%&+&
+%[\delta_{ij} - n_i n_j]
+% (\nabla_i \theta) (\nabla_j \theta)\\
+%\end{eqnarray*}
+
+%%%%%%%%%%%%%%%%
+%\begin{eqnarray*}
+%\frac{\partial R_{ai}}{\partial x_i}
+%\frac{\partial R_{aj}}{\partial x_j} &=&\\
+%&=& (1-\ct)^2 n_i n_j   (\nabla_i n_{b})(\nabla_j n_b)\\
+%&+& (1-\ct)^2 n_b n_i   (\nabla_i n_b)(\nabla_j n_j)\\
+%&+& (1-\ct)^2 n_b n_j   (\nabla_i n_i)(\nabla_j n_b)\\
+%&+& (1-\ct)^2           (\nabla_i n_i)(\nabla_j n_j)\\
+%&-& \st(1-\ct) e_{b_1jb_2} n_i              (\nabla_i n_{b_1})(\nabla_j n_{b_2})\\
+%&-& \st(1-\ct) e_{b_2ib_1} n_j              (\nabla_i n_{b_1})(\nabla_j n_{b_2})\\
+%&-& \st(1-\ct) e_{ajb} n_a  (\nabla_i n_i)(\nabla_j n_b)\\
+%&-& \st(1-\ct) e_{aib} n_a  (\nabla_i n_b)(\nabla_j n_j)\\
+%&+& \sts\                   (\nabla_i n_j)(\nabla_i n_j)\\
+%&-& \sts\                   (\nabla_i n_j)(\nabla_j n_i)\\
+%%
+%&+& 2\st(1-\ct)n_b n_j n_i      (\nabla_i n_b)(\nabla_j \theta)\\
+%&-& 2\st(1-\ct) n_i             (\nabla_i n_j)(\nabla_j \theta)\\
+%&-& 2\ct(1-\ct) e_{bjk} n_k n_i (\nabla_i n_b)(\nabla_j \theta)\\
+%&-& 2\sts\ n_a n_j e_{aib}      (\nabla_i n_b)(\nabla_j \theta)\\
+%&+& 2\sts\ e_{jib}              (\nabla_i n_b)(\nabla_j \theta)\\
+%&+& 2\st\ct\  n_b    (\nabla_i n_b)(\nabla_i \theta)\\
+%&-& 2\st\ct\  n_i    (\nabla_i n_j)(\nabla_j \theta)\\
+%%
+%&+& [\delta_{ij} - n_i n_j] (\nabla_i \theta) (\nabla_j \theta)\\
+%\end{eqnarray*}
+%%%%%%%%%%%%%%%%%
+%\begin{eqnarray*}
+%\frac{\partial R_{aj}}{\partial x_i}
+%\frac{\partial R_{ai}}{\partial x_j} &=&\\
+%&=& (1-\ct)^2 n_j n_i     (\nabla_i n_b)(\nabla_j n_b)\\
+%&+& (1-\ct)^2 n_b n_j     (\nabla_i n_b)(\nabla_j n_i)\\
+%&+& (1-\ct)^2 n_b n_i     (\nabla_i n_j)(\nabla_j n_b)\\
+%&+& (1-\ct)^2             (\nabla_i n_j)(\nabla_j n_i)\\
+%&-& \st(1-\ct) e_{b_1ib_2} n_j             (\nabla_i n_{b_1})(\nabla_j n_{b_2})\\
+%&-& \st(1-\ct) e_{b_2jb_1} n_i             (\nabla_i n_{b_1})(\nabla_j n_{b_2})\\
+%&-& \st(1-\ct) e_{aib} n_a (\nabla_i n_j)(\nabla_j n_b)\\
+%&-& \st(1-\ct) e_{ajb} n_a (\nabla_i n_b)(\nabla_j n_i)\\
+%&+& \sts\                  (\nabla_i n_j)(\nabla_i n_j)\\
+%&-& \sts\                  (\nabla_i n_i)(\nabla_j n_j)\\
+%%
+%&+& 2\st(1-\ct)n_b n_i n_j       (\nabla_j n_b)(\nabla_i \theta)\\
+%&-& 2\st(1-\ct)n_j               (\nabla_j n_i)(\nabla_i \theta)\\
+%&-& 2\ct(1-\ct) e_{bik} n_k n_j  (\nabla_j n_b)(\nabla_i \theta)\\
+%&-& 2\sts\ n_a n_i e_{ajb}       (\nabla_j n_b)(\nabla_i \theta)\\
+%&+& 2\sts\ e_{ijb}               (\nabla_j n_b)(\nabla_i \theta)\\
+%&+& 2\st\ct\ n_b                 (\nabla_i n_b)(\nabla_i \theta)\\
+%&-& 2\st\ct\ n_j                 (\nabla_j n_i)(\nabla_i \theta)\\
+%%
+%&+& [\delta_{ij} - n_i n_j] (\nabla_i \theta) (\nabla_j \theta)\\
+%\end{eqnarray*}
+
+
+% \nabla_j (n_i n_i) = 0 % unit vector -> 2 n_i (\nabla_j n_i) = 0
+
+%%%%%%%%%%%%%%%%
+%\begin{eqnarray*}
+%\frac{\partial R_{ai}}{\partial x_i}
+%\frac{\partial R_{aj}}{\partial x_j} &=&\\
+%&=& (1-\ct)^2 n_i n_j   (\nabla_i n_b)(\nabla_j n_b)\\
+%&+& (1-\ct)^2           (\nabla_i n_i)(\nabla_j n_j)\\
+%&-& \st(1-\ct) e_{b_1jb_2} n_i              (\nabla_i n_{b_1})(\nabla_j n_{b_2})\\
+%&-& \st(1-\ct) e_{b_2ib_1} n_j              (\nabla_i n_{b_1})(\nabla_j n_{b_2})\\
+%&-& \st(1-\ct) e_{ajb} n_a  (\nabla_i n_i)(\nabla_j n_b)\\
+%&-& \st(1-\ct) e_{aib} n_a  (\nabla_i n_b)(\nabla_j n_j)\\
+%&+& \sts\                   (\nabla_i n_j)(\nabla_i n_j)\\
+%&-& \sts\                   (\nabla_i n_j)(\nabla_j n_i)\\
+%%
+%&-& 2\st\ n_i  (\nabla_i n_j)(\nabla_j \theta)\\
+%&-& 2\ct(1-\ct) e_{bjk} n_k n_i (\nabla_i n_b)(\nabla_j \theta)\\
+%&-& 2\sts\ n_a n_j e_{aib}      (\nabla_i n_b)(\nabla_j \theta)\\
+%&+& 2\sts\ e_{jib}              (\nabla_i n_b)(\nabla_j \theta)\\
+%%
+%&+& [\delta_{ij} - n_i n_j] (\nabla_i \theta) (\nabla_j \theta)\\
+%\end{eqnarray*}
+%%%%%%%%%%%%%%%%%
+%\begin{eqnarray*}
+%\frac{\partial R_{aj}}{\partial x_i}
+%\frac{\partial R_{ai}}{\partial x_j} &=&\\
+%&=& (1-\ct)^2 n_j n_i     (\nabla_i n_b)(\nabla_j n_b)\\
+%&+& (1-\ct)^2             (\nabla_i n_j)(\nabla_j n_i)\\
+%&-& \st(1-\ct) e_{b_1ib_2} n_j             (\nabla_i n_{b_1})(\nabla_j n_{b_2})\\
+%&-& \st(1-\ct) e_{b_2jb_1} n_i             (\nabla_i n_{b_1})(\nabla_j n_{b_2})\\
+%&-& \st(1-\ct) e_{aib} n_a (\nabla_i n_j)(\nabla_j n_b)\\
+%&-& \st(1-\ct) e_{ajb} n_a (\nabla_i n_b)(\nabla_j n_i)\\
+%&+& \sts\                  (\nabla_i n_j)(\nabla_i n_j)\\
+%&-& \sts\                  (\nabla_i n_i)(\nabla_j n_j)\\
+%%
+%&-& 2\st\ n_j               (\nabla_j n_i)(\nabla_i \theta)\\
+%&-& 2\ct(1-\ct) e_{bik} n_k n_j  (\nabla_j n_b)(\nabla_i \theta)\\
+%&-& 2\sts\ n_a n_i e_{ajb}       (\nabla_j n_b)(\nabla_i \theta)\\
+%&+& 2\sts\ e_{ijb}               (\nabla_j n_b)(\nabla_i \theta)\\
+%%
+%&+& [\delta_{ij} - n_i n_j] (\nabla_i \theta) (\nabla_j \theta)\\
+%\end{eqnarray*}
+
+\eject
+
+
+
+\def\lga{\lambda_{G1}}
+\def\lgb{\lambda_{G2}}
+\def\lgs{(\lambda_{G1}+\lambda_{G2})}
+\def\lgd{(\lambda_{G1}-\lambda_{G2})}
+
+%%%%%%%%%%%%%%%%
+\begin{eqnarray*}
+F_D
+&=& \lgs(1-\ct)^2 n_i n_j   (\nabla_i n_b)(\nabla_j n_b)\\
+%
+&-& 2\lgd\st(1-\ct) e_{b_1jb_2} n_i  (\nabla_i n_{b_1})(\nabla_j n_{b_2})\\
+&-& 2\lga\st(1-\ct) e_{ajb} n_a (\nabla_j n_b)(\nabla_i n_i)\\
+&-& 2\lgb\st(1-\ct) e_{ajb} n_a (\nabla_i n_b)(\nabla_j n_i)\\
+%
+&+& \lgs\sts\                  (\nabla_i n_j)(\nabla_i n_j)\\
+&+& (\lga(1-\ct)^2-\lgb\sts)  (\nabla_i n_i)(\nabla_j n_j)\\
+&+& (\lgb(1-\ct)^2-\lga\sts)  (\nabla_i n_j)(\nabla_j n_i)\\
+%
+&-& 2\lgs\st\ n_i  (\nabla_i n_j)(\nabla_j \theta)\\
+&-& 2\lgs\ct(1-\ct) e_{bjk} n_k n_i (\nabla_i n_b)(\nabla_j \theta)\\
+&-& 2\lgs\sts\ n_a n_j e_{aib} (\nabla_i n_b)(\nabla_j \theta)\\
+&+& 2\lgs\sts\ e_{jib} (\nabla_i n_b)(\nabla_j \theta)\\
+%
+&+& \lgs[\delta_{ij} - n_i n_j] (\nabla_i \theta) (\nabla_j \theta)\\
+\end{eqnarray*}
+
+
+1D case.
+
+%%%%%%%%%%%%%%%%
+\begin{eqnarray*}
+F_D
+&=&\lgs[(1-\ct)^2 n_r^2 + 2 + 2\cts]  (\nabla n_r)^2\\
+&-& \lgb\sts  (\nabla n_r)^2\\
+&+&\lgs[(1-\ct)^2 n_r^2 + \sts]  (\nabla n_f)^2\\
+&+&\lgs[(1-\ct)^2 n_r^2 + \sts]  (\nabla n_z)^2\\
+%
+&+& 2\lgs\st(1-\ct) n_f (\nabla n_z)(\nabla n_r)\\
+&-& 2\lgs\st(1-\ct) n_z (\nabla n_f)(\nabla n_r)\\
+%
+&-& 2\lgs\st\ n_r  (\nabla n_r)(\nabla \theta)\\
+&-& 2\lgs(\ct - 1) n_r [n_f (\nabla n_z) - n_z (\nabla n_f) ](\nabla \theta)\\
+%
+&+& \lgs(1 - n_r^2) (\nabla \theta)^2\\
+\end{eqnarray*}
+
+
+
+
+%%%%%%%%%%%%%%%%
+\begin{eqnarray*}
+F_D
+&=& \lgs(1-\ct)^2\ |(\bn\cdot\nabla)\bn|^2\\
+%
+&-& 2\lgd\st(1-\ct)\  ((\bn\cdot\nabla)\bn)\cdot(\nabla\times\bn)\\
+&-& 2\lga\st(1-\ct)\  \bn\cdot(\nabla\times\bn)\ (\nabla\cdot\bn)\\
+&-& 2\lgb\st(1-\ct)\ e_{ajb} n_a (\nabla_i n_b)(\nabla_j n_i)\\
+%
+&+& \lgs\sts\                  (\nabla_i n_j)(\nabla_i n_j)\\
+&+& (\lga(1-\ct)^2-\lgb\sts)  (\nabla_i n_i)(\nabla_j n_j)\\
+&+& (\lgb(1-\ct)^2-\lga\sts)  (\nabla_i n_j)(\nabla_j n_i)\\
+%
+&-& 2\lgs\st\ (((\bn\cdot\nabla)\bn)\cdot\nabla\theta)\\
+&-& 2\lgs\ct(1-\ct) e_{bjk} n_k n_i (\nabla_i n_b)(\nabla_j \theta)\\
+&-& 2\lgs\sts\ (\bn\cdot(\nabla\times\bn))\ (\bn\cdot\nabla\theta)\\
+&+& 2\lgs\sts\  ((\nabla\times\bn)\cdot\nabla\theta)\\
+%
+&+& \lgs[|\nabla\theta|^2 - (\bn\cdot\nabla\theta)^2]
+\end{eqnarray*}
+
+
+\end{document}

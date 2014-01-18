@@ -1,0 +1,39 @@
+/* This is a list of fields in the parameter structure.
+ * It is used in following places:
+ *  mexfunc.c -- for conversions between c and matlab structures
+ *               (ARRAY and VALUE macro are defined there)
+ *  make_inc script -- to create header files for C and Fortran
+ */
+
+ARRAY(rr)  // r grid [cm]
+ARRAY(an)  // azimuthal angle of n vector [degrees]
+ARRAY(bn)  // polar angle of n vector [degrees]
+
+VALUE(a)   // Textural dipole-field parameter a [erg/cm^3 G^-2]
+VALUE(H)   // Magnetic field [G]
+VALUE(R)   // Cell radius [cm]
+
+VALUE(lg1) // Textural parameter lambda_g1 [erg/cm]
+VALUE(lg2) // Textural parameter lambda_g2 [erg/cm]
+
+VALUE(lhv) // Textural parameter lambda_HV [erg/cm3 1/G2 1/(cm/s)^2]
+VALUE(lsg) // Textural parameter lambda_SG [???]
+
+VALUE(ld)  // Textural parameter lambda_D [erg/cm^3]
+VALUE(lo)  // Textural parameter lambda/omega [s/rad]
+
+VALUE(d)   // Textural surface parameter d [erg/cm^2 G^-2]
+
+ARRAY(vr)  // velocity profile
+ARRAY(vz)
+ARRAY(vf)
+
+ARRAY(lr)  // vortex polarization
+ARRAY(lz)
+ARRAY(lf)
+
+ARRAY(w)      // vortex dencity, ??
+
+ARRAY(apsi)   // magnon wavefunction amplitude
+
+
