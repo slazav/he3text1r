@@ -4,11 +4,21 @@
         include 'text1r.fh'
       end block data
 
+! Check that number of points is less then array sizes
+      function check_size()
+        include 'text1r.fh'
+        logical check_size
+        check_size = text_n.gt.MAXN
+        if (check_size) write (*,*) &
+          'Error: number of points is larger then MAXN parameter'
+      end
+
 ! Initialize parameter structure
-      subroutine text1r_init(ttc,p,nu0,r, itype)
+      subroutine text1r_init(ttc,p,nu0,r, n, itype)
         implicit none
         real*8 ttc,p,nu0,r
-        integer itype, i, zz,hh
+        integer n, itype, i, zz,hh
+        logical check_size
         include 'text1r.fh'
         include 'he3.f90h'
 
@@ -22,15 +32,17 @@
         text_d = he3_text_d(ttc,p)
         text_r = r
         text_h = const_2pi*nu0/he3_gyro
+        text_n = n
+        if (check_size()) return
 
         ! initial conditions for alpha_n, beta_n
-        do i=1,MAXN
+        do i=1,text_n
           hh = itype/2
           zz = (itype - hh*2)*2-1 ! parity of itype -1 or 1
           text_an(i) = -zz*acos(0.5D0)
           text_bn(i) = 2*acos(0D0)*hh + acos(-zz*1D0/sqrt(5D0)) * &
-                       dble(i-1)/dble(MAXN-1)
-          text_rr(i)=text_r*dble(i-1)/dble(MAXN-1)
+                       dble(i-1)/dble(text_n-1)
+          text_rr(i)=text_r*dble(i-1)/dble(text_n-1)
           text_apsi(i)=0D0
           text_vr(i)=0D0
           text_vz(i)=0D0
@@ -47,9 +59,12 @@
         implicit none
         include 'text1r.fh'
         integer i
+        logical check_size
         real*8 omega,omega_v,rr
-        do i=1,MAXN
-          rr = dble(i-1)/dble(MAXN-1)*text_r
+
+        if (check_size()) return
+        do i=1,text_n
+          rr = dble(i-1)/dble(text_n-1)*text_r
           ! flow velocity
           text_vr(i)=0D0
           text_vf(i)=0D0
@@ -72,9 +87,12 @@
         implicit none
         include 'text1r.fh'
         integer i
+        logical check_size
         real*8 omega,omega_v,rr
-        do i=1,MAXN
-          rr = dble(i-1)/dble(MAXN-1)*text_r
+
+        if (check_size()) return
+        do i=1,text_n
+          rr = dble(i-1)/dble(text_n-1)*text_r
           ! flow velocity
           text_vr(i)=0D0
           text_vf(i)=(omega-omega_v)*rr
@@ -92,9 +110,12 @@
         implicit none
         include 'text1r.fh'
         integer i
+        logical check_size
         real*8 omega,kr,rr,r
-        do i=1,MAXN
-          rr = dble(i-1)/dble(MAXN-1)*text_r
+
+        if (check_size()) return
+        do i=1,text_n
+          rr = dble(i-1)/dble(text_n-1)*text_r
           r  = text_r
           text_vr(i)=0D0
           text_vf(i)=omega*rr-(kr**2/LOG(1+kr**2))*omega*rr/(1+(kr*rr/r)**2)
@@ -110,16 +131,16 @@
       subroutine text1r_print(fname)
         implicit none
         integer fd,i
+        logical check_size
         real*8 r2d
         character fname*(*)
         include 'text1r.fh'
   101   format (A,E12.4,A)
   102   format (A,I4)
         fd=100
-        write(*,*) '<<<', fname(1:10), '>>>', LEN(fname)
         open(fd, file='result.dat')
         write (fd,101) '# Texture parameters: '
-        write (fd,102) '#  Number of points n = ', MAXN
+        write (fd,102) '#  Number of points n = ', text_n
         write (fd,101) '#  Cell radius r = ', text_r,   ' cm'
         write (fd,101) '#  Mag.field   H = ', text_H,   ' G'
         write (fd,101) '#          (nu_0 = ', text_H*20.0378/2/acos(0D0), ' kHz)'
@@ -134,6 +155,7 @@
         write (fd,101) '#  surface par d = ', text_d,   ' erg/cm^2 1/G^2'
         write (fd,'(A)') '#'
         r2d=90D0/acos(0D0)
+        if (check_size()) return
   103   format ('# ' A6 '  ' A9 ' ' A9 '  ' A9                           &
       &              '  ' A9 ' ' A9 ' ' A9                               &
       &              '  ' A9 ' ' A9 ' ' A9                               &
@@ -145,7 +167,7 @@
         write(fd, 103) 'r,cm', 'a_n,deg', 'b_n,deg', 'apsi',             &
       &                'vr,cm/s', 'vz,cm/s', 'vf,cm/s',                  &
       &                'lr', 'lz', 'lf','w'
-        do i=1,MAXN
+        do i=1,text_n
           write (fd,104) text_rr(i),                                     &
       &                  text_an(i)*r2d, text_bn(i)*r2d,                 &
       &                  text_apsi(i),                                   &
@@ -165,10 +187,12 @@
         parameter (lw = 14*maxnpar)
         real*8 x(maxnpar), g(maxnpar), f
         real*8 w(lw)
+        logical check_size
         external text1r_mfunc
-        call text1r_text2x(MAXN, text_an, text_bn, x)
-        call tn(ierror,maxnpar,x,f,g,w,lw,text1r_mfunc,msglev)
-        call text1r_x2text(MAXN, text_an, text_bn, x)
+        if (check_size()) return
+        call text1r_text2x(text_n, text_an, text_bn, x)
+        call tn(ierror,2*text_n-2,x,f,g,w,lw,text1r_mfunc,msglev)
+        call text1r_x2text(text_n, text_an, text_bn, x)
       end
 
 !      subroutine text1r_minimize_btn()
@@ -181,9 +205,15 @@
 !                  + 4*nprocs*nprocs + 7 *(maxnpt*nprocs)
 !        real*8 x(maxnpar), g(maxnpar)
 !        real*8 w(lw)
-!        call ab2x(MAXN, text_an, text_bn, x)
+!
+!        if (text_n.gt.MAXN) then
+!          write (*,*) 'Error: number of points is larger then MAXN parameter'
+!          return
+!        endif
+!
+!        call ab2x(text_n, text_an, text_bn, x)
 !        call btnez(n,x,f,g, w, lw, text1r_mfunc, iflag)
-!        call x2ab(MAXN, text_an, text_bn, x)
+!        call x2ab(text_n, text_an, text_bn, x)
 !      end
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -497,3 +527,35 @@
         Eb = Eb - 2D0*text_lsg*xir**2*sin2b/13D0
       end
 
+!     Calculate gradient energy in 2D case with fixed theta=theta0
+!     (UNTESTED!)
+!     input:
+!       l1,l2    -- parameters lambda_1, lambda_2
+!       n(3)     -- order parameter vector nx,ny,nz
+!       dn(3,2)  -- derivatives d(nx,ny,nz)/d(x,y)
+!     output:
+!       e        -- gradient energy
+!       en(3)    -- derivatives de/d(nx,ny,nz)
+!       edn(3,2) -- derivatives de/d(dn)
+      subroutine text2d0_egrad(l1, l2, n,dn, e, en,edn)
+        real*8 l1,l2,n(3),dn(3,2), e, en(3), edn(3,2)
+        real*8 c1,c2,c3,c4,c5
+        c1 = 25D0/16D0*(l1+l2)
+        c2 = -5D0*sqrt(5D0)/4D0*(l1+l2)
+        c3 = -5D0*sqrt(5D0)/4D0
+        c4 = 5D0/16D0*(l1+l2)
+        c5 = 5D0/4D0
+
+        e = c1 * ( (n(1)*dn(1,1) + n(2)*dn(1,2))**2                      &
+     &           + (n(1)*dn(2,1) + n(2)*dn(2,2))**2                      &
+     &           + (n(1)*dn(3,1) + n(2)*dn(3,2))**2 )                    &
+     &    + c2 * (n(1)*dn(3,2)*dn(2,2) - n(2)*dn(3,1)*dn(1,1)            &
+     &          + n(3)*(dn(1,1)+dn(2,2))*(dn(2,1)-dn(1,2)))              &
+     &    + c3 * ( l1*(n(1)*dn(3,2)*dn(1,1) - n(2)*dn(3,1)*dn(2,2))      &
+     &           + l2*(n(1)*dn(3,1)*dn(1,2) - n(2)*dn(3,2)*dn(2,1)) )    &
+     &    + c4 * ( 5*dn(1,1)*dn(1,1) + 5*dn(2,2)*dn(2,2)                 &
+     &           + 3*dn(2,1)*dn(2,1) + 3*dn(1,2)*dn(1,2) )               &
+     &    + c5 * ( (5D0*l1-3D0*l2) * dn(1,1)*dn(2,2)                     &
+     &           + (5D0*l2-3D0*l2) * dn(1,2)*dn(2,1) )
+
+      end

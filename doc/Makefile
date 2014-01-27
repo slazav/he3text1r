@@ -1,4 +1,4 @@
-all: tech.pdf text1r.pdf
+all: tech.pdf tech1.pdf text1r.pdf
 
 %.pdf: %.ps
 	ps2pdf $<

@@ -1,39 +1,41 @@
 /* This is a list of fields in the parameter structure.
  * It is used in following places:
  *  mexfunc.c -- for conversions between c and matlab structures
- *               (ARRAY and VALUE macro are defined there)
+ *               (ARR, DBL and INT macro are defined there)
  *  make_inc script -- to create header files for C and Fortran
  */
 
-ARRAY(rr)  // r grid [cm]
-ARRAY(an)  // azimuthal angle of n vector [degrees]
-ARRAY(bn)  // polar angle of n vector [degrees]
 
-VALUE(a)   // Textural dipole-field parameter a [erg/cm^3 G^-2]
-VALUE(H)   // Magnetic field [G]
-VALUE(R)   // Cell radius [cm]
+ARR(rr)  // r grid [cm]
+ARR(an)  // azimuthal angle of n vector [degrees]
+ARR(bn)  // polar angle of n vector [degrees]
 
-VALUE(lg1) // Textural parameter lambda_g1 [erg/cm]
-VALUE(lg2) // Textural parameter lambda_g2 [erg/cm]
+DBL(a)   // Textural dipole-field parameter a [erg/cm^3 G^-2]
+DBL(H)   // Magnetic field [G]
+DBL(R)   // Cell radius [cm]
 
-VALUE(lhv) // Textural parameter lambda_HV [erg/cm3 1/G2 1/(cm/s)^2]
-VALUE(lsg) // Textural parameter lambda_SG [???]
+DBL(lg1) // Textural parameter lambda_g1 [erg/cm]
+DBL(lg2) // Textural parameter lambda_g2 [erg/cm]
 
-VALUE(ld)  // Textural parameter lambda_D [erg/cm^3]
-VALUE(lo)  // Textural parameter lambda/omega [s/rad]
+DBL(lhv) // Textural parameter lambda_HV [erg/cm3 1/G2 1/(cm/s)^2]
+DBL(lsg) // Textural parameter lambda_SG [???]
 
-VALUE(d)   // Textural surface parameter d [erg/cm^2 G^-2]
+DBL(ld)  // Textural parameter lambda_D [erg/cm^3]
+DBL(lo)  // Textural parameter lambda/omega [s/rad]
 
-ARRAY(vr)  // velocity profile
-ARRAY(vz)
-ARRAY(vf)
+DBL(d)   // Textural surface parameter d [erg/cm^2 G^-2]
 
-ARRAY(lr)  // vortex polarization
-ARRAY(lz)
-ARRAY(lf)
+ARR(vr)  // velocity profile
+ARR(vz)
+ARR(vf)
 
-ARRAY(w)      // vortex dencity, ??
+ARR(lr)  // vortex polarization
+ARR(lz)
+ARR(lf)
 
-ARRAY(apsi)   // magnon wavefunction amplitude
+ARR(w)      // vortex dencity, ??
 
+ARR(apsi)   // magnon wavefunction amplitude
+
+INT(n)     // number of points
 

@@ -27,8 +27,9 @@ EOF
 echo "typedef struct{" >> $ch
 
 sed -n '
-  s/ARRAY(\([a-zA-Z0-9_]\+\))/  double \1[MAXN];/p
-  s/VALUE(\([a-zA-Z0-9_]\+\))/  double \1;/p
+  s/ARR(\([a-zA-Z0-9_]\+\))/  double \1[MAXN];/p
+  s/DBL(\([a-zA-Z0-9_]\+\))/  double \1;/p
+  s/INT(\([a-zA-Z0-9_]\+\))/  int \1;/p
 ' < $defs >> $ch
 
 cat >> $ch <<EOF
@@ -52,8 +53,9 @@ EOF
 # write structire fields
 sed -n '
   s|//|!|
-  s/ARRAY(\([a-zA-Z0-9_]\+\))/      real*8 text_\1(MAXN)/p
-  s/VALUE(\([a-zA-Z0-9_]\+\))/      real*8 text_\1/p
+  s/ARR(\([a-zA-Z0-9_]\+\))/      real*8 text_\1(MAXN)/p
+  s/DBL(\([a-zA-Z0-9_]\+\))/      real*8 text_\1/p
+  s/INT(\([a-zA-Z0-9_]\+\))/      integer text_\1/p
 ' < $defs >> $fh
 
 echo "" >> $fh
@@ -61,7 +63,7 @@ echo "" >> $fh
 # Write common block
 # 1. create a single line:
 names="$(cat $defs |
-  sed -n 's/\(ARRAY\|VALUE\)(\([a-zA-Z0-9_]\+\)).*/text_\2/p' |
+  sed -n 's/\(ARR\|DBL\|INT\)(\([a-zA-Z0-9_]\+\)).*/text_\2/p' |
   tr '\n' ',' |
   sed 's/^/common \/'$struct'\/ /; s/,$//; s/,/, /g')"
 
