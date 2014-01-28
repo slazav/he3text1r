@@ -527,8 +527,65 @@
         Eb = Eb - 2D0*text_lsg*xir**2*sin2b/13D0
       end
 
+!     Calculate gradient energy in 1D radial case
+!     as a function of alpha, beta with fixed theta=theta0
+      subroutine text1r0_egrada(l1, l2, r, a,ar, e, ea,ear)
+        real*8 l1,l2,a(2),ar(2), e, ea(2), ear(2)
+        real*8 l1,l2,a(2),da(2,2), e, ea(2), eda(2,2)
+        
+      end
+
+!     Calculate gradient energy in 2D case
+!     as a function of alpha, beta with fixed theta=theta0
+!     input:
+!       l1,l2    -- parameters lambda_1, lambda_2
+!       a(2)     -- order parameter angles alpha_n, beta_n
+!       da(2,2)  -- derivatives d(alpha_n, beta_n)/d(x,y)
+!     output:
+!       e        -- gradient energy
+!       ea(2)    -- derivatives de/d(alpha_n, beta_n)
+!       eda(2,2) -- derivatives de/d(da)
+      subroutine text2d0_egrada(l1, l2, a,da, e, ea,eda)
+        real*8 l1,l2,a(2),da(2,2), e, ea(2), eda(2,2)
+        n(3),dn(3,2), dna(3,2), en(3), edn(3,2)
+
+        ! nx, ny, nz
+        n(1)=sin(a(2))*cos(a(1))
+        n(2)=sin(a(2))*sin(a(1))
+        n(3)=cos(a(2))
+
+        ! dnx/dalpha, dnx/dbeta ...
+        dna(1,1)=-sin(a(2))*sin(a(1))
+        dna(1,2)=cos(a(2))*cos(a(1))
+        dna(2,1)=sin(a(2))*cos(a(1))
+        dna(2,2)=cos(a(2))*sin(a(1))
+        dna(3,1)=0D0
+        dna(3,2)=-sin(a(2))
+
+        ! dnx/dy = dnx/da da/dy + dnx/db db/dy
+        dn(1,1) = dna(1,1)*da(1,1) + dna(1,2)*da(2,1)
+        dn(1,2) = dna(1,1)*da(1,2) + dna(1,2)*da(2,2)
+        dn(2,1) = dna(2,1)*da(1,1) + dna(2,2)*da(2,1)
+        dn(2,2) = dna(2,1)*da(1,2) + dna(2,2)*da(2,2)
+        dn(3,1) = dna(3,1)*da(1,1) + dna(3,2)*da(2,1)
+        dn(3,2) = dna(3,1)*da(1,2) + dna(3,2)*da(2,2)
+
+        call text2d0_egradn(l1, l2, n,dn, e, en,edn)
+
+        ! de/da = de/dnx * dnx/da + de/dny * dny/da + de/dnz * dnz/da
+        ea(1) = en(1)*dna(1,1) + en(2)*dna(2,1) + en(3)*dna(3,1)
+        ea(2) = en(1)*dna(1,2) + en(2)*dna(2,2) + en(3)*dna(3,2)
+
+        !de/d(da/dx) = de/d(dnx/dx)*dnx/da + de/d(dny/dx)*dny/da + de/d(dnz/dx)*dnz/da
+        eda(1,1) = edn(1,1)*dna(1,1) + edn(2,1)*dna(2,1) + edn(3,1)*dna(3,1)
+        eda(1,2) = edn(1,2)*dna(1,1) + edn(2,2)*dna(2,1) + edn(3,2)*dna(3,1)
+        eda(2,1) = edn(1,1)*dna(1,2) + edn(2,1)*dna(2,2) + edn(3,1)*dna(3,2)
+        eda(2,2) = edn(1,2)*dna(1,2) + edn(2,2)*dna(2,2) + edn(3,2)*dna(3,2)
+      end
+
 !     Calculate gradient energy in 2D case with fixed theta=theta0
-!     (UNTESTED!)
+!     as a function of nx,ny,nz with fixed theta=theta0
+!     (UNUSED and UNTESTED!)
 !     input:
 !       l1,l2    -- parameters lambda_1, lambda_2
 !       n(3)     -- order parameter vector nx,ny,nz
@@ -537,7 +594,7 @@
 !       e        -- gradient energy
 !       en(3)    -- derivatives de/d(nx,ny,nz)
 !       edn(3,2) -- derivatives de/d(dn)
-      subroutine text2d0_egrad(l1, l2, n,dn, e, en,edn)
+      subroutine text2d0_egradn(l1, l2, n,dn, e, en,edn)
         real*8 l1,l2,n(3),dn(3,2), e, en(3), edn(3,2)
         real*8 c1,c2,c3,c4,c5
         c1 = 25D0/16D0*(l1+l2)
@@ -553,9 +610,50 @@
      &          + n(3)*(dn(1,1)+dn(2,2))*(dn(2,1)-dn(1,2)))              &
      &    + c3 * ( l1*(n(1)*dn(3,2)*dn(1,1) - n(2)*dn(3,1)*dn(2,2))      &
      &           + l2*(n(1)*dn(3,1)*dn(1,2) - n(2)*dn(3,2)*dn(2,1)) )    &
-     &    + c4 * ( 5*dn(1,1)*dn(1,1) + 5*dn(2,2)*dn(2,2)                 &
-     &           + 3*dn(2,1)*dn(2,1) + 3*dn(1,2)*dn(1,2) )               &
+     &    + c4 * ( 5D0*dn(1,1)*dn(1,1) + 5D0*dn(2,2)*dn(2,2)             &
+     &           + 3D0*dn(2,1)*dn(2,1) + 3D0*dn(1,2)*dn(1,2) )           &
      &    + c5 * ( (5D0*l1-3D0*l2) * dn(1,1)*dn(2,2)                     &
      &           + (5D0*l2-3D0*l2) * dn(1,2)*dn(2,1) )
+
+        en(1) = 2D0*c1 *                                                 &
+     &     ( (n(1)*dn(1,1) + n(2)*dn(1,2))*dn(1,1)                       &
+     &     + (n(1)*dn(2,1) + n(2)*dn(2,2))*dn(2,1)                       &
+     &     + (n(1)*dn(3,1) + n(2)*dn(3,2))*dn(3,1) )                     &
+     &    + c2 * dn(3,2)*dn(2,2)                                         &
+     &    + c3 * ( l1*dn(3,2)*dn(1,1) + l2*dn(3,1)*dn(1,2) )
+        en(2) = 2D0*c1 *                                                 &
+     &     ( (n(1)*dn(1,1) + n(2)*dn(1,2))*dn(1,2)                       &
+     &     + (n(1)*dn(2,1) + n(2)*dn(2,2))*dn(2,2)                       &
+     &     + (n(1)*dn(3,1) + n(2)*dn(3,2))*dn(3,2) )                     &
+     &    - c2 * dn(3,1)*dn(1,1)                                         &
+     &    - c3 * ( l1*dn(3,1)*dn(2,2) + l2*dn(3,2)*dn(2,1) )
+        en(3) = c2 * (dn(1,1)+dn(2,2))*(dn(2,1)-dn(1,2))
+
+        edn(1,1) = 2D0*c1 * (n(1)*dn(1,1) + n(2)*dn(1,2))*n(1)           &
+     &    + c2 * (- n(2)*dn(3,1) + n(3)*(dn(2,1)-dn(1,2)))               &
+     &    + c3 * l1*n(1)*dn(3,2)                                         &
+     &    + c4 * 10D0*dn(1,1)*dn(1,1)                                    &
+     &    + c5 * (5D0*l1-3D0*l2) * dn(2,2)
+        edn(1,2) = 2D0*c1 * (n(1)*dn(1,1) + n(2)*dn(1,2))*n(2)           &
+     &    - c2 * n(3)*(dn(1,1)+dn(2,2))                                  &
+     &    + c3 * l2*n(1)*dn(3,1)                                         &
+     &    + c4 * 6D0*dn(1,2)                                             &
+     &    + c5 * (5D0*l2-3D0*l2) * dn(2,1)
+        edn(2,1) = 2D0*c1 * (n(1)*dn(2,1) + n(2)*dn(2,2))*n(1)           &
+     &    + c2 * n(3)*(dn(1,1)+dn(2,2))                                  &
+     &    - c3 * l2*n(2)*dn(3,2)                                         &
+     &    + c4 * 6D0*dn(2,1)                                             &
+     &    + c5 * (5D0*l2-3D0*l2) * dn(1,2)
+        edn(2,2) = 2D0*c1 * (n(1)*dn(2,1) + n(2)*dn(2,2))*n(2)           &
+     &    + c2 * (n(1)*dn(3,2) + n(3)*(dn(2,1)-dn(1,2)))                 &
+     &    - c3 * n(2)*dn(3,1)                                            &
+     &    + c4 * 10D0*dn(2,2)                                            &
+     &    + c5 * (5D0*l1-3D0*l2) * dn(1,1)
+        edn(3,1) = 2D0*c1 * (n(1)*dn(3,1) + n(2)*dn(3,2))*n(1)           &
+     &    - c2 * n(2)*dn(1,1)                                            &
+     &    - c3 * ( l1*n(2)*dn(2,2) - l2*n(1)*dn(1,2))
+        edn(3,2) = 2D0*c1 * (n(1)*dn(3,1) + n(2)*dn(3,2))*n(2)           &
+     &    + c2 * n(1)*dn(2,2)                                            &
+     &    + c3 * ( l1*n(1)*dn(1,1) - l2*n(2)*dn(2,1))
 
       end
