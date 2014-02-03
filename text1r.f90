@@ -258,11 +258,11 @@
         real*8 ga(nx/2+1), gb(nx/2+1)
         n=nx/2+1
         call text1r_x2text(n, a,b, x)
-        call text1r_egrad(n,a,b,f,ga,gb)
+        call text1r_eint(n,a,b,f,ga,gb)
         call text1r_text2x(n, ga,gb, g)
       end
 
-!!! Calculate free energy E and derivatives dE/da(i), dE/db(i)
+!!! Calculate total free energy E and derivatives dE/da(i), dE/db(i)
 !
 ! E = Int e(r, a(r),b(r), da/dr, db/dr,...) r dr
 ! Gaussian quadrature is used for calculating integral. For each
@@ -285,7 +285,7 @@
 !   (Ea*sm*dr + Eda)*r/2 for i-sp, i!=0
 ! but we can calculate E* only in two points instead of 4
 ! and add some terms to both dE/da(i) and dE/da(i+1)
-      subroutine text1r_egrad(n,a,b,e,ga,gb)
+      subroutine text1r_eint(n,a,b,e,ga,gb)
 
         implicit none
         include 'text1r.fh'
@@ -296,6 +296,7 @@
         real*8 apsim, vzm,vrm,vfm,lzm,lrm,lfm,wm
         real*8 da,db
         real*8 E0,Ea,Eb,Eda,Edb
+        real*8 E1, E2,E1a,E1b,E2a,E2b
         real*8 dx,sp,sm
 
         ! points for Gaussian quadrature
@@ -311,52 +312,70 @@
         e=0D0
 
         do i=1,n-1
+          ! gaussian quadrature points
           rp = (i-1+sp)*dx
           rm = (i-1+sm)*dx
+
+          ! bulk energy at the i point
+          if (i.eq.1) then
+            call text1r_ebulk(a(i),b(i), text_apsi(i), &
+                 text_vz(i), text_vr(i), text_vf(i), &
+                 text_lz(i), text_lr(i), text_lf(i), &
+                 text_w(i), E1, E1a, E1b)
+          else
+            E1=E2
+            E1a=E2a
+            E1b=E2b
+          endif
+          ! bulk energy at the i+1 point
+          call text1r_ebulk(a(i+1),b(i+1), text_apsi(i+1), &
+               text_vz(i+1), text_vr(i+1), text_vf(i+1), &
+               text_lz(i+1), text_lr(i+1), text_lf(i+1), &
+               text_w(i+1), E2, E2a, E2b)
+
+          ! interpolate bulk energy and derivatives to rp,rm points
+          E0 = sp*E2  + sm*E1
+          Ea = sp*E2a + sm*E1a
+          Eb = sp*E2b + sm*E1b
+          ga(i) = ga(i) + Ea*sm*dx*rp*0.5
+          gb(i) = gb(i) + Eb*sm*dx*rp*0.5
+          ga(i+1) = ga(i+1) + Ea*sp*dx*rp*0.5
+          gb(i+1) = gb(i+1) + Eb*sp*dx*rp*0.5
+          e = e + rp*e0*0.5*dx
+
+          E0 = sm*E2+sp*E1
+          Ea = sm*E2a+sp*E1a
+          Eb = sm*E2b+sp*E1b
+          ga(i) = ga(i) + Ea*sp*dx*rm*0.5
+          gb(i) = gb(i) + Eb*sp*dx*rm*0.5
+          ga(i+1) = ga(i+1) + Ea*sm*dx*rm*0.5
+          gb(i+1) = gb(i+1) + Eb*sm*dx*rm*0.5
+          e = e + rm*E0*0.5*dx
+
+          ! calculate gradient energy in rp, rm points
           ap = sp*a(i+1)+sm*a(i)
           am = sm*a(i+1)+sp*a(i)
           bp = sp*b(i+1)+sm*b(i)
           bm = sm*b(i+1)+sp*b(i)
-
           da = (a(i+1)-a(i))/dx
           db = (b(i+1)-b(i))/dx
 
-          apsip=sp*text_apsi(i+1)+sm*text_apsi(i)
-          apsim=sm*text_apsi(i+1)+sp*text_apsi(i)
-
-          vzp=sp*text_vz(i+1)+sm*text_vz(i)
-          vzm=sm*text_vz(i+1)+sp*text_vz(i)
-          vrp=sp*text_vr(i+1)+sm*text_vr(i)
-          vrm=sm*text_vr(i+1)+sp*text_vr(i)
-          vfp=sp*text_vf(i+1)+sm*text_vf(i)
-          vfm=sm*text_vf(i+1)+sp*text_vf(i)
-          lzp=sp*text_lz(i+1)+sm*text_lz(i)
-          lzm=sm*text_lz(i+1)+sp*text_lz(i)
-          lrp=sp*text_lr(i+1)+sm*text_lr(i)
-          lrm=sm*text_lr(i+1)+sp*text_lr(i)
-          lfp=sp*text_lf(i+1)+sm*text_lf(i)
-          lfm=sm*text_lf(i+1)+sp*text_lf(i)
-          wp=sp*text_w(i+1)+sm*text_w(i)
-          wm=sm*text_w(i+1)+sp*text_w(i)
-
-          call text1r_ebulk(rp, ap,bp,da,db, apsip, vzp,vrp,vfp, &
-                   lzp,lrp,lfp, wp, E0,Ea,Eb,Eda,Edb)
-          ga(i) = ga(i) + (Ea*sm*dx - Eda)*rp/2.0
-          gb(i) = gb(i) + (Eb*sm*dx - Edb)*rp/2.0
-          ga(i+1) = ga(i+1) + (Ea*sp*dx + Eda)*rp/2.0
-          gb(i+1) = gb(i+1) + (Eb*sp*dx + Edb)*rp/2.0
+          call text1r_egrad(rp, ap,bp,da,db, E0,Ea,Eb,Eda,Edb)
+          ga(i) = ga(i) + (Ea*sm*dx - Eda)*rp*0.5
+          gb(i) = gb(i) + (Eb*sm*dx - Edb)*rp*0.5
+          ga(i+1) = ga(i+1) + (Ea*sp*dx + Eda)*rp*0.5
+          gb(i+1) = gb(i+1) + (Eb*sp*dx + Edb)*rp*0.5
           e = e + rp*e0*0.5*dx
 
-          call text1r_ebulk(rm, am,bm,da,db, apsim, vzm,vrm,vfm, &
-                   lzm,lrm,lfm, wm, E0,Ea,Eb,Eda,Edb)
-          ga(i) = ga(i) + (Ea*sp*dx - Eda)*rm/2.0
-          gb(i) = gb(i) + (Eb*sp*dx - Edb)*rm/2.0
-          ga(i+1) = ga(i+1) + (Ea*sm*dx + Eda)*rm/2.0
-          gb(i+1) = gb(i+1) + (Eb*sm*dx + Edb)*rm/2.0
+          call text1r_egrad(rm, am,bm,da,db, E0,Ea,Eb,Eda,Edb)
+          ga(i) = ga(i) + (Ea*sp*dx - Eda)*rm*0.5
+          gb(i) = gb(i) + (Eb*sp*dx - Edb)*rm*0.5
+          ga(i+1) = ga(i+1) + (Ea*sm*dx + Eda)*rm*0.5
+          gb(i+1) = gb(i+1) + (Eb*sm*dx + Edb)*rm*0.5
           e = e + rm*E0*0.5*dx
 
         enddo
-        ! surface terms
+        ! surface energy
         call text1r_esurf(a(n),b(n),E0,Ea,Eb)
         e = e + E0
         ga(n) = ga(n) + Ea
@@ -373,22 +392,18 @@
 !!   lo for non-zero rotation
 !!   vd for non-zero flow
 !!   de and xi
-      subroutine text1r_ebulk(r,a,b,da,db, &
-                         apsi, vz,vr,vf, lz,lr,lf, w, &
-                          E,Ea,Eb,Eda,Edb)
+      subroutine text1r_ebulk(a,b, apsi, vz,vr,vf, lz,lr,lf, w,&
+                          E,Ea,Eb)
         implicit none
         include 'text1r.fh'
-        real*8 r,a,b,da,db,E,Ea,Eb,Eda,Edb
+        real*8 a,b,E,Ea,Eb
         real*8 apsi, vz,vr,vf, lz,lr,lf, w
         real*8 nz,nr,nf, rzz,rzr,rzf
         real*8 sin_a, sin_b, cos_a, cos_b, cos2b, sin2b
         real*8 con1, con2, help, c,s
 
-        real*8 s3,s5,dar,de,xir,vd
+        real*8 s3,s5,vd
 
-        dar = text_d / (text_a*text_r)
-        de  = text_lg1/text_lg2 - 2D0
-        xir  = sqrt(65D0/8D0 * text_lg2/text_a)/ text_H / text_r
         vd  = dsqrt(0.4D0 * text_a / text_lhv)
 
         s3 = sqrt(3D0)
@@ -416,8 +431,6 @@
         E = 0
         Ea = 0
         Eb = 0
-        Eda = 0
-        Edb = 0
 
         ! magnetic free energy F_DH = -a * (n H)^2
         E = E + sin_b**2
@@ -451,7 +464,37 @@
              + lf*((1D0-c)*sin_b*cos_b*cos_a + s*sin_b*sin_a)
         Ea = Ea + text_lo*w*2/5 * help * (rzr*lr+rzf*lf+rzz*lz)
 
-        ! bending free energy F_G
+      end
+
+!! Calculate He3 gradient energy E and derivatives dE/da, dE/db, dE/da', dE/db'
+!! in 1d radial coordinated as a function of r, n-vector angles a and b,
+!! and derivatives a'=da/dr, b'=db/dr.
+!! Energy is divided by (a H^2).
+      subroutine text1r_egrad(r,a,b,da,db, E,Ea,Eb,Eda,Edb)
+        implicit none
+        include 'text1r.fh'
+        real*8 r,a,b,da,db,E,Ea,Eb,Eda,Edb
+        real*8 sin_a, sin_b, cos_a, cos_b
+        real*8 con1, con2, help
+        real*8 s3,s5,de,xir
+
+        de  = text_lg1/text_lg2 - 2D0
+        xir  = sqrt(65D0/8D0 * text_lg2/text_a)/ text_H / text_r
+
+        s3 = sqrt(3D0)
+        s5 = sqrt(5D0)
+
+        cos_a = cos(a)
+        sin_a = sin(a)
+        cos_b = cos(b)
+        sin_b = sin(b)
+
+        E = 0
+        Ea = 0
+        Eb = 0
+        Eda = 0
+        Edb = 0
+
         con1 = 4*(4+de)*xir**2/13
 
         E = E + con1*(db**2 + (sin_b**2)*da**2 + (sin_b**2)/r**2) ! (\nabla n)^2 (?)
@@ -478,6 +521,7 @@
           + (s5*cos_b*sin_a - s3*cos_a)*cos_b/r &
           - s5*sin_b*sin_a*sin_b/r)
       end
+
 
 
 ! Calculate E, dE/da, dE/db, dE/da', dE/db' at surface
@@ -527,133 +571,3 @@
         Eb = Eb - 2D0*text_lsg*xir**2*sin2b/13D0
       end
 
-!     Calculate gradient energy in 1D radial case
-!     as a function of alpha, beta with fixed theta=theta0
-      subroutine text1r0_egrada(l1, l2, r, a,ar, e, ea,ear)
-        real*8 l1,l2,a(2),ar(2), e, ea(2), ear(2)
-        real*8 l1,l2,a(2),da(2,2), e, ea(2), eda(2,2)
-        
-      end
-
-!     Calculate gradient energy in 2D case
-!     as a function of alpha, beta with fixed theta=theta0
-!     input:
-!       l1,l2    -- parameters lambda_1, lambda_2
-!       a(2)     -- order parameter angles alpha_n, beta_n
-!       da(2,2)  -- derivatives d(alpha_n, beta_n)/d(x,y)
-!     output:
-!       e        -- gradient energy
-!       ea(2)    -- derivatives de/d(alpha_n, beta_n)
-!       eda(2,2) -- derivatives de/d(da)
-      subroutine text2d0_egrada(l1, l2, a,da, e, ea,eda)
-        real*8 l1,l2,a(2),da(2,2), e, ea(2), eda(2,2)
-        n(3),dn(3,2), dna(3,2), en(3), edn(3,2)
-
-        ! nx, ny, nz
-        n(1)=sin(a(2))*cos(a(1))
-        n(2)=sin(a(2))*sin(a(1))
-        n(3)=cos(a(2))
-
-        ! dnx/dalpha, dnx/dbeta ...
-        dna(1,1)=-sin(a(2))*sin(a(1))
-        dna(1,2)=cos(a(2))*cos(a(1))
-        dna(2,1)=sin(a(2))*cos(a(1))
-        dna(2,2)=cos(a(2))*sin(a(1))
-        dna(3,1)=0D0
-        dna(3,2)=-sin(a(2))
-
-        ! dnx/dy = dnx/da da/dy + dnx/db db/dy
-        dn(1,1) = dna(1,1)*da(1,1) + dna(1,2)*da(2,1)
-        dn(1,2) = dna(1,1)*da(1,2) + dna(1,2)*da(2,2)
-        dn(2,1) = dna(2,1)*da(1,1) + dna(2,2)*da(2,1)
-        dn(2,2) = dna(2,1)*da(1,2) + dna(2,2)*da(2,2)
-        dn(3,1) = dna(3,1)*da(1,1) + dna(3,2)*da(2,1)
-        dn(3,2) = dna(3,1)*da(1,2) + dna(3,2)*da(2,2)
-
-        call text2d0_egradn(l1, l2, n,dn, e, en,edn)
-
-        ! de/da = de/dnx * dnx/da + de/dny * dny/da + de/dnz * dnz/da
-        ea(1) = en(1)*dna(1,1) + en(2)*dna(2,1) + en(3)*dna(3,1)
-        ea(2) = en(1)*dna(1,2) + en(2)*dna(2,2) + en(3)*dna(3,2)
-
-        !de/d(da/dx) = de/d(dnx/dx)*dnx/da + de/d(dny/dx)*dny/da + de/d(dnz/dx)*dnz/da
-        eda(1,1) = edn(1,1)*dna(1,1) + edn(2,1)*dna(2,1) + edn(3,1)*dna(3,1)
-        eda(1,2) = edn(1,2)*dna(1,1) + edn(2,2)*dna(2,1) + edn(3,2)*dna(3,1)
-        eda(2,1) = edn(1,1)*dna(1,2) + edn(2,1)*dna(2,2) + edn(3,1)*dna(3,2)
-        eda(2,2) = edn(1,2)*dna(1,2) + edn(2,2)*dna(2,2) + edn(3,2)*dna(3,2)
-      end
-
-!     Calculate gradient energy in 2D case with fixed theta=theta0
-!     as a function of nx,ny,nz with fixed theta=theta0
-!     (UNUSED and UNTESTED!)
-!     input:
-!       l1,l2    -- parameters lambda_1, lambda_2
-!       n(3)     -- order parameter vector nx,ny,nz
-!       dn(3,2)  -- derivatives d(nx,ny,nz)/d(x,y)
-!     output:
-!       e        -- gradient energy
-!       en(3)    -- derivatives de/d(nx,ny,nz)
-!       edn(3,2) -- derivatives de/d(dn)
-      subroutine text2d0_egradn(l1, l2, n,dn, e, en,edn)
-        real*8 l1,l2,n(3),dn(3,2), e, en(3), edn(3,2)
-        real*8 c1,c2,c3,c4,c5
-        c1 = 25D0/16D0*(l1+l2)
-        c2 = -5D0*sqrt(5D0)/4D0*(l1+l2)
-        c3 = -5D0*sqrt(5D0)/4D0
-        c4 = 5D0/16D0*(l1+l2)
-        c5 = 5D0/4D0
-
-        e = c1 * ( (n(1)*dn(1,1) + n(2)*dn(1,2))**2                      &
-     &           + (n(1)*dn(2,1) + n(2)*dn(2,2))**2                      &
-     &           + (n(1)*dn(3,1) + n(2)*dn(3,2))**2 )                    &
-     &    + c2 * (n(1)*dn(3,2)*dn(2,2) - n(2)*dn(3,1)*dn(1,1)            &
-     &          + n(3)*(dn(1,1)+dn(2,2))*(dn(2,1)-dn(1,2)))              &
-     &    + c3 * ( l1*(n(1)*dn(3,2)*dn(1,1) - n(2)*dn(3,1)*dn(2,2))      &
-     &           + l2*(n(1)*dn(3,1)*dn(1,2) - n(2)*dn(3,2)*dn(2,1)) )    &
-     &    + c4 * ( 5D0*dn(1,1)*dn(1,1) + 5D0*dn(2,2)*dn(2,2)             &
-     &           + 3D0*dn(2,1)*dn(2,1) + 3D0*dn(1,2)*dn(1,2) )           &
-     &    + c5 * ( (5D0*l1-3D0*l2) * dn(1,1)*dn(2,2)                     &
-     &           + (5D0*l2-3D0*l2) * dn(1,2)*dn(2,1) )
-
-        en(1) = 2D0*c1 *                                                 &
-     &     ( (n(1)*dn(1,1) + n(2)*dn(1,2))*dn(1,1)                       &
-     &     + (n(1)*dn(2,1) + n(2)*dn(2,2))*dn(2,1)                       &
-     &     + (n(1)*dn(3,1) + n(2)*dn(3,2))*dn(3,1) )                     &
-     &    + c2 * dn(3,2)*dn(2,2)                                         &
-     &    + c3 * ( l1*dn(3,2)*dn(1,1) + l2*dn(3,1)*dn(1,2) )
-        en(2) = 2D0*c1 *                                                 &
-     &     ( (n(1)*dn(1,1) + n(2)*dn(1,2))*dn(1,2)                       &
-     &     + (n(1)*dn(2,1) + n(2)*dn(2,2))*dn(2,2)                       &
-     &     + (n(1)*dn(3,1) + n(2)*dn(3,2))*dn(3,2) )                     &
-     &    - c2 * dn(3,1)*dn(1,1)                                         &
-     &    - c3 * ( l1*dn(3,1)*dn(2,2) + l2*dn(3,2)*dn(2,1) )
-        en(3) = c2 * (dn(1,1)+dn(2,2))*(dn(2,1)-dn(1,2))
-
-        edn(1,1) = 2D0*c1 * (n(1)*dn(1,1) + n(2)*dn(1,2))*n(1)           &
-     &    + c2 * (- n(2)*dn(3,1) + n(3)*(dn(2,1)-dn(1,2)))               &
-     &    + c3 * l1*n(1)*dn(3,2)                                         &
-     &    + c4 * 10D0*dn(1,1)*dn(1,1)                                    &
-     &    + c5 * (5D0*l1-3D0*l2) * dn(2,2)
-        edn(1,2) = 2D0*c1 * (n(1)*dn(1,1) + n(2)*dn(1,2))*n(2)           &
-     &    - c2 * n(3)*(dn(1,1)+dn(2,2))                                  &
-     &    + c3 * l2*n(1)*dn(3,1)                                         &
-     &    + c4 * 6D0*dn(1,2)                                             &
-     &    + c5 * (5D0*l2-3D0*l2) * dn(2,1)
-        edn(2,1) = 2D0*c1 * (n(1)*dn(2,1) + n(2)*dn(2,2))*n(1)           &
-     &    + c2 * n(3)*(dn(1,1)+dn(2,2))                                  &
-     &    - c3 * l2*n(2)*dn(3,2)                                         &
-     &    + c4 * 6D0*dn(2,1)                                             &
-     &    + c5 * (5D0*l2-3D0*l2) * dn(1,2)
-        edn(2,2) = 2D0*c1 * (n(1)*dn(2,1) + n(2)*dn(2,2))*n(2)           &
-     &    + c2 * (n(1)*dn(3,2) + n(3)*(dn(2,1)-dn(1,2)))                 &
-     &    - c3 * n(2)*dn(3,1)                                            &
-     &    + c4 * 10D0*dn(2,2)                                            &
-     &    + c5 * (5D0*l1-3D0*l2) * dn(1,1)
-        edn(3,1) = 2D0*c1 * (n(1)*dn(3,1) + n(2)*dn(3,2))*n(1)           &
-     &    - c2 * n(2)*dn(1,1)                                            &
-     &    - c3 * ( l1*n(2)*dn(2,2) - l2*n(1)*dn(1,2))
-        edn(3,2) = 2D0*c1 * (n(1)*dn(3,1) + n(2)*dn(3,2))*n(2)           &
-     &    + c2 * n(1)*dn(2,2)                                            &
-     &    + c3 * ( l1*n(1)*dn(1,1) - l2*n(2)*dn(2,1))
-
-      end
