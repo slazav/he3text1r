@@ -383,10 +383,9 @@
       end
 
 
-!! Calculate He3 bulk energy E and derivatives dE/da, dE/db, dE/da', dE/db'
+!! Calculate He3 bulk energy E and derivatives dE/da, dE/db
 !! in 1d radial coordinated as a function of r, n-vector angles a and b,
-!! and derivatives a'=da/dr, b'=db/dr.
-!! Energy is divided by (a H^2).
+!! Energy is divided by (a r H^2).
 !! parameters used:
 !!   chia*(nub/nu0)^2, for non-zero apsi
 !!   lo for non-zero rotation

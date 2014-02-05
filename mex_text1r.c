@@ -2,10 +2,10 @@
 #include <string.h>
 #include <stdio.h>
 
-#define PARS_H "../text1r.h"
+#define PARS_H "text1r.h"
 #define PARS   text1r_pars_
 #define PARS_T text1r_pars_t
-#define FIELDS "../text1r.def"
+#define FIELDS "text1r.def"
 
 #include PARS_H
 
