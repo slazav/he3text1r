@@ -113,12 +113,12 @@ Following functions are provided to calculate texture:
 \item {\bf text1r\_init(ttc, p, nu0, r, n, itype)} -- Initialize data
 structure. Textural parameters are set according to temperature {\tt
 ttc} (T/Tc) and pressure {\tt p} (bar) using {\tt libhe3} library.
-$\lambda/Omega$ parameter is set to zero. Magnetic field is set from
-{\tt nu0} Larmor frequency. Vortex and counterflow distributions are set
-to zero. Initial distributions for $\alpha_N$ and $\beta_N$ are set
-according to itype parameter: 0 means usual flare-out texture, 1 means
-texture with 90-degree peak, 2 and more means even larger rotation of
-{\bf n} vector. Parameters can be changed manually before minimization.
+$\lambda/\Omega$ parameter is set to zero (no theory). Magnetic field is
+set from {\tt nu0} Larmor frequency. Vortex and counterflow
+distributions are set to zero. Initial distributions for $\alpha_N$ and
+$\beta_N$ are set according to itype parameter: 0 means usual flare-out
+texture, 1 means texture with 90-degree peak, 2 and more means larger
+rotation of {\bf n} vector.
 
 \item {\bf text1r\_set\_vortex\_cluster(dat, omega, omega\_v)} -- Set
 counterflow and vortex profiles for central vortex cluster. Here {\tt
@@ -165,6 +165,8 @@ Example of C program can be found in {\tt examples} folder.
 
 Simple usage:
 \begin{verbatim}
+  #include "text1r.h"
+  ...
   text1r_init_(&ttc, &p, &nu0, &r, &n, &itype);
   text1r_pars_.lo=5;
   text1r_set_vortex_cluster_(&omega, &omega_v);
@@ -177,7 +179,7 @@ global structure {\tt text1r\_pars\_} with fields {\tt n, rr, an} etc. Usual
 way of calling Fortran functions from a C program is used.
 
 \subsection*{Matlab/Octave}
-{\tt MEX}-files for Matlab and Octave can be build in {\tt matlab} folder.
+{\tt MEX}-files for Matlab and Octave can be found in {\tt matlab} folder.
 Example of matlab script can be found in {\tt examples} folder.
 
 Simple usage:

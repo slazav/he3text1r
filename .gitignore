@@ -3,4 +3,5 @@
 *.so
 text1r.h
 text1r.fh
-matlab
+*.mex
+*.mexgl
