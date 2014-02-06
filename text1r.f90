@@ -218,6 +218,35 @@
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+! Various chacks
+      subroutine text1r_selfcheck(msglev)
+        implicit none
+        include 'text1r.fh'
+        integer msglev, i
+
+        logical check_size
+        if (check_size()) return
+
+        call text1r_conv_selfcheck( &
+          text_n,text_an,text_bn, 1D-14)
+        do i=2,text_n
+          call text1r_ebulk_selfcheck( &
+            text_an(i), text_bn(i), text_apsi(i), &
+                 text_vz(i), text_vr(i), text_vf(i), &
+                 text_lz(i), text_lr(i), text_lf(i), &
+                 text_w(i), 1D-3, 1D-4)
+          call text1r_esurf_selfcheck( &
+            text_an(i),text_bn(i), 1D-3, 1D-4)
+          call text1r_egrad_selfcheck( &
+            text_rr(i),text_an(i),text_bn(i), 1D-3, 1D-4)
+        enddo
+        call text1r_eint_selfcheck( &
+          text_n,text_an,text_bn, 1D-3, 1D-2)
+
+      end
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 ! Convert alpha and beta vectors to x vector
 ! x(1:2n-1) = [alpha(1:n) beta(2:n)]
 ! beta(1) is thrown away (it is 0)
@@ -228,6 +257,17 @@
         do i=2,n
           x(i-1)       = a(i)
           x(n-1 + i-1) = b(i)
+        enddo
+      end
+
+! Convert dE/dAi, dE/dBi to dE/dXi
+      subroutine text1r_text2ex(n,a,b, ea,eb,ex)
+        implicit none
+        integer i,n
+        real*8 a(n),b(n),ea(n),eb(n),ex(2*n-2)
+        do i=2,n
+          ex(i-1) = ea(i)
+          ex(n-1 + i-1) = eb(i)
         enddo
       end
 
@@ -245,6 +285,37 @@
         b(1)=0D0
       end
 
+! Self test for convert functions
+      subroutine text1r_conv_selfcheck(n, a,b, e)
+        implicit none
+        include 'text1r.fh'
+        integer n,i
+        real*8 a(n),b(n),x(2*MAXN+1),e
+        real*8 an(n),bn(n)
+
+        real*8 E1,Ea1(n),Eb1(n)
+        real*8 E2,Ea2(n),Eb2(n)
+        real*8 der1,der2
+
+        ! check conversions a,b -> x - a,b
+        call text1r_text2x(n, a, b, x)
+        call text1r_x2text(n, an, bn, x)
+        do i=1,n
+          if (dabs(a(i) - an(i)) > e) then
+            write (*,*) 'text1r_conv_selfcheck failed for A->X->A conversion:'
+            write (*,*) 'i: ', i, ' A1: ', an(i), ' A2: ', a(i)
+            return
+          endif
+          if (dabs(b(i) - bn(i)) > e) then
+            write (*,*) 'text1r_conv_selfcheck failed for B->X->B conversion:'
+            write (*,*) 'i: ', i, ' B1: ', bn(i), ' B2: ', b(i)
+            return
+          endif
+        enddo
+      end
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 ! Wrapper for egrad function for using in the TN.
 ! Calculate f and g from x values.
 ! x as array of both alpha and beta values
@@ -259,8 +330,10 @@
         n=nx/2+1
         call text1r_x2text(n, a,b, x)
         call text1r_eint(n,a,b,e,ea,eb)
-        call text1r_text2x(n, ea,eb, ex)
+        call text1r_text2ex(n, a,b,ea,eb, ex)
       end
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !!! Calculate total free energy E and derivatives dE/da(i), dE/db(i)
 !
@@ -369,13 +442,52 @@
           ebi(i+1) = ebi(i+1) + (Eb*sm*dx + Edb)*rm*0.5
 
         enddo
-        ! sureace energy
+        ! surface energy
         call text1r_esurf(a(n),b(n),E0,Ea,Eb)
         ei = ei + E0
         eai(n) = eai(n) + Ea
         ebi(n) = ebi(n) + Eb
       end
 
+
+! Self test for eint derivatives
+      subroutine text1r_eint_selfcheck(n, a,b, d, e)
+        implicit none
+        integer n,i
+        real*8 a(n),b(n),d,e
+        real*8 E1,Ea1(n),Eb1(n)
+        real*8 E2,Ea2(n),Eb2(n)
+        real*8 der1,der2
+
+        call text1r_eint(n,a,b,e1,ea1,eb1)
+        do i=2,n
+
+          b(i) = b(i) + d
+          call text1r_eint(n,a,b,e2,ea2,eb2)
+          b(i) = b(i) - d
+          der1=(e2-e1)/d
+          der2=(eb2(i)+eb1(i))/2D0
+          if ( dabs( der1/der2 - 1 ) > e ) then
+            write (*,*) 'text1r_eint_selfcheck failed for derivative dE/dBi:'
+            write (*,*) 'i: ', i, ' (e2-e1)/db: ', der1, ' ea1*db: ', der2
+            return
+          endif
+
+          a(i) = a(i) + d
+          call text1r_eint(n,a,b,e2,ea2,eb2)
+          a(i) = a(i) - d
+          der1=(e2-e1)/d
+          der2=(ea2(i)+ea1(i))/2D0
+          if ( dabs( der1/der2 - 1 ) > e ) then
+            write (*,*) 'text1r_eint_selfcheck failed for derivative dE/dAi:'
+            write (*,*) 'i: ', i, ' (e2-e1)/da: ', der1, ' ea1: ', der2
+            return
+          endif
+        enddo
+      end
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !! Calculate He3 bulk energy E and derivatives dE/da, dE/db
 !! in 1d radial coordinated as a function of r, n-vector angles a and b,
@@ -456,8 +568,35 @@
         help = lr*((1D0-c)*sin_b*cos_b*sin_a - s*sin_b*cos_a) &
              + lf*((1D0-c)*sin_b*cos_b*cos_a + s*sin_b*sin_a)
         Ea = Ea + text_lo*w*2/5 * help * (rzr*lr+rzf*lf+rzz*lz)
-
       end
+
+! Self test for ebulk derivatives
+      subroutine text1r_ebulk_selfcheck(a,b, apsi, vz,vr,vf, lz,lr,lf, w, d, e)
+        implicit none
+        real*8 a,b,d,e
+        real*8 E1,Ea1,Eb1
+        real*8 E2,Ea2,Eb2
+        real*8 der1,der2
+        real*8 apsi, vz,vr,vf, lz,lr,lf, w
+
+        call text1r_ebulk(a,b, apsi, vz,vr,vf, lz,lr,lf, w, E1,Ea1,Eb1)
+        call text1r_ebulk(a+d,b, apsi, vz,vr,vf, lz,lr,lf, w, E2,Ea2,Eb2)
+        der1=(E2-E1)/d
+        der2=(Ea2+Ea1)/2D0
+        if ( dabs( der1/der2 - 1 ) > e ) then
+          write(*,*) 'text1r_ebulk_selfcheck failed for dE/da:'
+          write(*,*) ' a: ', a, ' b: ', b, ' (E2-E1)/da: ', der1, ' Ea: ', der2
+        endif
+        call text1r_ebulk(a,b+d, apsi, vz,vr,vf, lz,lr,lf, w, E2,Ea2,Eb2)
+        der1=(E2-E1)/d
+        der2=(Eb2+Eb1)/2D0
+        if ( dabs( der1/der2 - 1 ) > e ) then
+          write(*,*) 'text1r_ebulk_selfcheck failed for dE/db:'
+          write(*,*) ' a: ', a, ' b: ', b, ' (E2-E1)/db: ', der1, ' Eb: ', der2
+        endif
+      end
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !! Calculate He3 gradient energy E and derivatives dE/da, dE/db, dE/da', dE/db'
 !! in 1d radial coordinated as a function of r, n-vector angles a and b,
@@ -515,9 +654,56 @@
           - s5*sin_b*sin_a*sin_b/r)
       end
 
+! Self test for egrad derivatives
+      subroutine text1r_egrad_selfcheck(r,a,b, d, e)
+        implicit none
+        real*8 r,a,b,d,e,g0
+        real*8 E1,Ea1,Eb1,Eda1,Edb1
+        real*8 E2,Ea2,Eb2,Eda2,Edb2
+        real*8 der1,der2
 
+        g0=1D-3
+        call text1r_egrad(r, a,  b,g0,g0,E1,Ea1,Eb1,Eda1,Edb1)
+        call text1r_egrad(r, a+d,b,g0,g0,E2,Ea2,Eb2,Eda2,Edb2)
+        der1=(E2-E1)/d
+        der2=(Ea2+Ea1)/2D0
+        if ( dabs( der1/der2 - 1 ) > e ) then
+          write(*,*) 'text1r_egrad_selfcheck failed for dE/da:'
+          write(*,*) ' a: ', a, ' b: ', b, ' (E2-E1)/da: ', der1, ' Ea: ', der2
+          return
+        endif
 
-! Calculate E, dE/da, dE/db, dE/da', dE/db' at sureace
+        call text1r_egrad(r, a,b+d,g0,g0,E2,Ea2,Eb2,Eda2,Edb2)
+        der1=(E2-E1)/d
+        der2=(Eb2+Eb1)/2D0
+        if ( dabs( der1/der2 - 1 ) > e ) then
+          write(*,*) 'text1r_egrad_selfcheck failed for dE/db:'
+          write(*,*) ' a: ', a, ' b: ', b, ' (E2-E1)/db: ', der1, ' Eb: ', der2
+          return
+        endif
+
+        call text1r_egrad(r, a,b,g0+d,g0,E2,Ea2,Eb2,Eda2,Edb2)
+        der1=(E2-E1)/d
+        der2=(Eda2+Eda1)/2D0
+        if ( dabs( der1/der2 - 1 ) > e ) then
+          write(*,*) 'text1r_egrad_selfcheck failed for dE/d(da):'
+          write(*,*) ' a: ', a, ' b: ', b, ' (E2-E1)/d(da): ', der1, ' Eda: ', der2
+          return
+        endif
+
+        call text1r_egrad(r, a,b,g0,g0+d,E2,Ea2,Eb2,Eda2,Edb2)
+        der1=(E2-E1)/d
+        der2=(Edb2+Edb1)/2D0
+        if ( dabs( der1/der2 - 1 ) > e ) then
+          write(*,*) 'text1r_egrad_selfcheck failed for dE/d(db):'
+          write(*,*) ' a: ', a, ' b: ', b, ' (E2-E1)/d(db): ', der1, ' Edb: ', der2
+          return
+        endif
+      end
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+! Calculate E, dE/da, dE/db, dE/da', dE/db' at surface
 ! parameters used: dar,xir,lsg
       subroutine text1r_esurf(a,b,E,Ea,Eb)
         implicit none
@@ -562,5 +748,32 @@
         ! lsg ~ 3
         E = E - 2D0*text_lsg*xir**2*sin_b**2/13D0
         Eb = Eb - 2D0*text_lsg*xir**2*sin2b/13D0
+      end
+
+! Self test for esurf derivatives
+      subroutine text1r_esurf_selfcheck(a,b, d, e)
+        implicit none
+        real*8 a,b,d,e
+        real*8 E1,Ea1,Eb1
+        real*8 E2,Ea2,Eb2
+        real*8 der1,der2
+
+        call text1r_esurf(a,b,E1,Ea1,Eb1)
+        call text1r_esurf(a+d,b,E2,Ea2,Eb2)
+        der1=(E2-E1)/d
+        der2=(Ea2+Ea1)/2D0
+        if ( dabs( der1/der2 - 1 ) > e ) then
+          write(*,*) 'text1r_esurf_selfcheck failed for dE/da:'
+          write(*,*) ' a: ', a, ' b: ', b, ' (E2-E1)/da: ', der1, ' Ea: ', der2
+          return
+        endif
+        call text1r_esurf(a,b+d,E2,Ea2,Eb2)
+        der1=(E2-E1)/d
+        der2=(Eb2+Eb1)/2D0
+        if ( dabs( der1/der2 - 1 ) > e ) then
+          write(*,*) 'text1r_esurf_selfcheck failed for dE/db:'
+          write(*,*) ' a: ', a, ' b: ', b, ' (E2-E1)/db: ', der1, ' Eb: ', der2
+          return
+        endif
       end
 
