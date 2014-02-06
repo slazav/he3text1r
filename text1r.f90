@@ -249,17 +249,17 @@
 ! Calculate f and g from x values.
 ! x as array of both alpha and beta values
 ! g is array of both ga, gb
-      subroutine text1r_mfunc(nx,x,f,g)
+      subroutine text1r_mfunc(nx,x,e,ex)
         !! Wrapper for egrad function for using in the TN.
         implicit none
         integer i,nx,n
-        real*8 f, x(nx),g(nx)
+        real*8 e, x(nx),ex(nx)
         real*8 a(nx/2+1), b(nx/2+1)
-        real*8 ga(nx/2+1), gb(nx/2+1)
+        real*8 ea(nx/2+1), eb(nx/2+1)
         n=nx/2+1
         call text1r_x2text(n, a,b, x)
-        call text1r_eint(n,a,b,f,ga,gb)
-        call text1r_text2x(n, ga,gb, g)
+        call text1r_eint(n,a,b,e,ea,eb)
+        call text1r_text2x(n, ea,eb, ex)
       end
 
 !!! Calculate total free energy E and derivatives dE/da(i), dE/db(i)
@@ -276,7 +276,7 @@
 ! Changes of a in these points are DA*sm, DA*sp, DA*sp, DA*sm
 ! Changes of a' in these points are DA/dr, DA/dr, -DA/dr, -DA/dr
 ! We need to calculate dE/DA = Sum(dE/da * da + dE/da' * da')/DA
-! We also need r*dr/2 factor as in energy calculation
+! We also need r*dr/2 eactor as in energy calculation
 !
 ! Strightforward approach is to calculate sum for these 4 points
 !   (Ea*sm*dr - Eda)*r/2 for i+sp, i!=n
@@ -285,13 +285,13 @@
 !   (Ea*sm*dr + Eda)*r/2 for i-sp, i!=0
 ! but we can calculate E* only in two points instead of 4
 ! and add some terms to both dE/da(i) and dE/da(i+1)
-      subroutine text1r_eint(n,a,b,e,ga,gb)
+      subroutine text1r_eint(n,a,b,ei,eai,ebi)
 
         implicit none
         include 'text1r.fh'
         integer i,n
-        real*8 a(n), b(n), ga(n), gb(n)
-        real*8 rp,rm,bp,bm,ap,am,e
+        real*8 a(n), b(n), eai(n), ebi(n)
+        real*8 rp,rm,bp,bm,ap,am,ei
         real*8 apsip, vzp,vrp,vfp,lzp,lrp,lfp,wp
         real*8 apsim, vzm,vrm,vfm,lzm,lrm,lfm,wm
         real*8 da,db
@@ -306,10 +306,10 @@
         dx = 1D0/(n-1)
 
         do i=1,n
-           ga(i)=0D0
-           gb(i)=0D0
+           eai(i)=0D0
+           ebi(i)=0D0
         enddo
-        e=0D0
+        ei=0D0
 
         do i=1,n-1
           ! gaussian quadrature points
@@ -334,18 +334,17 @@
                text_w(i+1), E2, E2a, E2b)
 
           ! interpolate bulk energy and derivatives to rp,rm points
-          e = e + rp*(sp*E2 + sm*E1)*0.5*dx
-          ga(i) = ga(i) + E1a*sm*dx*rp*0.5
-          gb(i) = gb(i) + E1b*sm*dx*rp*0.5
-          ga(i+1) = ga(i+1) + E2a*sp*dx*rp*0.5
-          gb(i+1) = gb(i+1) + E2b*sp*dx*rp*0.5
+          ei = ei + rp*(sp*E2 + sm*E1)*0.5*dx
+          eai(i) = eai(i) + E1a*sm*dx*rp*0.5
+          ebi(i) = ebi(i) + E1b*sm*dx*rp*0.5
+          eai(i+1) = eai(i+1) + E2a*sp*dx*rp*0.5
+          ebi(i+1) = ebi(i+1) + E2b*sp*dx*rp*0.5
 
-          E0 = sm*E2+sp*E1
-          ga(i) = ga(i) + E1a*sp*dx*rm*0.5
-          gb(i) = gb(i) + E1b*sp*dx*rm*0.5
-          ga(i+1) = ga(i+1) + E2a*sm*dx*rm*0.5
-          gb(i+1) = gb(i+1) + E2b*sm*dx*rm*0.5
-          e = e + rm*(sm*E2 + sp*E1)*0.5*dx
+          ei = ei + rm*(sm*E2 + sp*E1)*0.5*dx
+          eai(i) = eai(i) + E1a*sp*dx*rm*0.5
+          ebi(i) = ebi(i) + E1b*sp*dx*rm*0.5
+          eai(i+1) = eai(i+1) + E2a*sm*dx*rm*0.5
+          ebi(i+1) = ebi(i+1) + E2b*sm*dx*rm*0.5
 
           ! calculate gradient energy in rp, rm points
           ap = sp*a(i+1)+sm*a(i)
@@ -356,25 +355,25 @@
           db = (b(i+1)-b(i))/dx
 
           call text1r_egrad(rp, ap,bp,da,db, E0,Ea,Eb,Eda,Edb)
-          ga(i) = ga(i) + (Ea*sm*dx - Eda)*rp*0.5
-          gb(i) = gb(i) + (Eb*sm*dx - Edb)*rp*0.5
-          ga(i+1) = ga(i+1) + (Ea*sp*dx + Eda)*rp*0.5
-          gb(i+1) = gb(i+1) + (Eb*sp*dx + Edb)*rp*0.5
-          e = e + rp*e0*0.5*dx
+          ei = ei + rp*E0*0.5*dx
+          eai(i) = eai(i) + (Ea*sm*dx - Eda)*rp*0.5
+          ebi(i) = ebi(i) + (Eb*sm*dx - Edb)*rp*0.5
+          eai(i+1) = eai(i+1) + (Ea*sp*dx + Eda)*rp*0.5
+          ebi(i+1) = ebi(i+1) + (Eb*sp*dx + Edb)*rp*0.5
 
           call text1r_egrad(rm, am,bm,da,db, E0,Ea,Eb,Eda,Edb)
-          ga(i) = ga(i) + (Ea*sp*dx - Eda)*rm*0.5
-          gb(i) = gb(i) + (Eb*sp*dx - Edb)*rm*0.5
-          ga(i+1) = ga(i+1) + (Ea*sm*dx + Eda)*rm*0.5
-          gb(i+1) = gb(i+1) + (Eb*sm*dx + Edb)*rm*0.5
-          e = e + rm*E0*0.5*dx
+          ei = ei + rm*E0*0.5*dx
+          eai(i) = eai(i) + (Ea*sp*dx - Eda)*rm*0.5
+          ebi(i) = ebi(i) + (Eb*sp*dx - Edb)*rm*0.5
+          eai(i+1) = eai(i+1) + (Ea*sm*dx + Eda)*rm*0.5
+          ebi(i+1) = ebi(i+1) + (Eb*sm*dx + Edb)*rm*0.5
 
         enddo
-        ! surface energy
+        ! sureace energy
         call text1r_esurf(a(n),b(n),E0,Ea,Eb)
-        e = e + E0
-        ga(n) = ga(n) + Ea
-        gb(n) = gb(n) + Eb
+        ei = ei + E0
+        eai(n) = eai(n) + Ea
+        ebi(n) = ebi(n) + Eb
       end
 
 
@@ -518,7 +517,7 @@
 
 
 
-! Calculate E, dE/da, dE/db, dE/da', dE/db' at surface
+! Calculate E, dE/da, dE/db, dE/da', dE/db' at sureace
 ! parameters used: dar,xir,lsg
       subroutine text1r_esurf(a,b,E,Ea,Eb)
         implicit none
