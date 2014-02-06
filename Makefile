@@ -22,8 +22,8 @@ libtext1r.a: text1r.o ../lib/libhe3.a ../lib/external/libtn.a
 libtext1r.so: text1r.o ../lib/libhe3.a ../lib/external/libtn.a
 	$(FC) --shared -fPIC -o $@ $+
 
-text1r.fh text1r.h: text1r.def make_inc
-	./make_inc
+text1r.fh text1r.h: text1r.def make_text1r
+	./make_text1r
 
 text1r.o: text1r.f90 text1r.fh
 	$(FC) -c $< $(FFLAGS)
