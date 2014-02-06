@@ -334,23 +334,18 @@
                text_w(i+1), E2, E2a, E2b)
 
           ! interpolate bulk energy and derivatives to rp,rm points
-          E0 = sp*E2  + sm*E1
-          Ea = sp*E2a + sm*E1a
-          Eb = sp*E2b + sm*E1b
-          ga(i) = ga(i) + Ea*sm*dx*rp*0.5
-          gb(i) = gb(i) + Eb*sm*dx*rp*0.5
-          ga(i+1) = ga(i+1) + Ea*sp*dx*rp*0.5
-          gb(i+1) = gb(i+1) + Eb*sp*dx*rp*0.5
-          e = e + rp*e0*0.5*dx
+          e = e + rp*(sp*E2 + sm*E1)*0.5*dx
+          ga(i) = ga(i) + E1a*sm*dx*rp*0.5
+          gb(i) = gb(i) + E1b*sm*dx*rp*0.5
+          ga(i+1) = ga(i+1) + E2a*sp*dx*rp*0.5
+          gb(i+1) = gb(i+1) + E2b*sp*dx*rp*0.5
 
           E0 = sm*E2+sp*E1
-          Ea = sm*E2a+sp*E1a
-          Eb = sm*E2b+sp*E1b
-          ga(i) = ga(i) + Ea*sp*dx*rm*0.5
-          gb(i) = gb(i) + Eb*sp*dx*rm*0.5
-          ga(i+1) = ga(i+1) + Ea*sm*dx*rm*0.5
-          gb(i+1) = gb(i+1) + Eb*sm*dx*rm*0.5
-          e = e + rm*E0*0.5*dx
+          ga(i) = ga(i) + E1a*sp*dx*rm*0.5
+          gb(i) = gb(i) + E1b*sp*dx*rm*0.5
+          ga(i+1) = ga(i+1) + E2a*sm*dx*rm*0.5
+          gb(i+1) = gb(i+1) + E2b*sm*dx*rm*0.5
+          e = e + rm*(sm*E2 + sp*E1)*0.5*dx
 
           ! calculate gradient energy in rp, rm points
           ap = sp*a(i+1)+sm*a(i)
