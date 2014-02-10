@@ -185,13 +185,13 @@
         integer maxnpar, lw, ierror, msglev
         parameter (maxnpar = 2*MAXN-2)
         parameter (lw = 14*maxnpar)
-        real*8 x(maxnpar), g(maxnpar), f
+        real*8 x(maxnpar), ex(maxnpar), e
         real*8 w(lw)
         logical check_size
         external text1r_mfunc
         if (check_size()) return
         call text1r_text2x(text_n, text_an, text_bn, x)
-        call tn(ierror,2*text_n-2,x,f,g,w,lw,text1r_mfunc,msglev)
+        call tn(ierror,2*text_n-2,x,e,ex,w,lw,text1r_mfunc,msglev)
         call text1r_x2text(text_n, text_an, text_bn, x)
       end
 
@@ -228,7 +228,7 @@
         if (check_size()) return
 
         call text1r_conv_selfcheck( &
-          text_n,text_an,text_bn, 1D-14)
+          text_n,text_an,text_bn, 1D-10)
         do i=2,text_n
           call text1r_ebulk_selfcheck( &
             text_an(i), text_bn(i), text_apsi(i), &
@@ -241,6 +241,8 @@
             text_rr(i),text_an(i),text_bn(i), 1D-3, 1D-4)
         enddo
         call text1r_eint_selfcheck( &
+          text_n,text_an,text_bn, 1D-3, 1D-2)
+        call text1r_mfunc_selfcheck( &
           text_n,text_an,text_bn, 1D-3, 1D-2)
 
       end
@@ -290,7 +292,7 @@
         implicit none
         include 'text1r.fh'
         integer n,i
-        real*8 a(n),b(n),x(2*MAXN+1),e
+        real*8 a(n),b(n),x(2*MAXN-2),e
         real*8 an(n),bn(n)
 
         real*8 E1,Ea1(n),Eb1(n)
@@ -331,6 +333,34 @@
         call text1r_x2text(n, a,b, x)
         call text1r_eint(n,a,b,e,ea,eb)
         call text1r_text2ex(n, a,b,ea,eb, ex)
+      end
+
+! Self test for mfunc derivatives
+      subroutine text1r_mfunc_selfcheck(n, a,b, d, e)
+        implicit none
+        include 'text1r.fh'
+        integer n,i
+        real*8 a(n),b(n),d,e
+        real*8 x(2*MAXN-2)
+        real*8 E1,Ex1(2*MAXN-2)
+        real*8 E2,Ex2(2*MAXN-2)
+        real*8 der1,der2
+
+        call text1r_text2x(n, a, b, x)
+        call text1r_mfunc(2*n-2, x, e1, ex1)
+        do i=1,2*n-2
+
+          x(i) = x(i) + d
+          call text1r_mfunc(2*n-2, x, e2, ex2)
+          x(i) = x(i) - d
+          der1=(e2-e1)/d
+          der2=(ex2(i)+ex1(i))/2D0
+          if ( dabs( der1/der2 - 1 ) > e ) then
+            write (*,*) 'text1r_mfunc_selfcheck failed for derivative dE/dXi:'
+            write (*,*) 'i: ', i, ' (e2-e1)/dx: ', der1, ' ex*dx: ', der2
+            return
+          endif
+        enddo
       end
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
