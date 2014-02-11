@@ -52,7 +52,9 @@ $$
 
 Spin-orbit energy for arbitrary distribution of precessing magnetization $\Psi$:
 $$
-F = \chi \frac{\Omega^2_B}{\gamma^2} \int_V  \Psi^2 \sin^2\beta_N
+F = \frac85\frac{\chi\Omega_B^2}{\gamma^2} \sin^2\frac{\beta_L}{2} \sin^2\frac{\beta_M}{2} =
+15\lambda_D \sin^2\beta_M \sin^2\frac{\beta_M}{2},\quad
+\left(\sin^2\frac{\beta_L}{2} = \frac58\sin^2\beta_N\right)
 $$
 
 Superflow energy for arbitrary distribution of counterflow ${\bf v_s-v_n}$:
@@ -70,13 +72,16 @@ Surface energy:
 \begin{eqnarray*}
 F_{SH} &=& -d
   \int_S [{\bf H} \cdot R \cdot {\bf s} ]^2\ d^2r\\
-F_{SG} &=& -\lambda_{SG}
+F_{SG} &=& (2\lambda_{G2} + \lambda_{SG})
   \int_S s_j R_{\alpha j}
     \frac{\partial R_{\alpha i}}{\partial r_i}\ d^2r\\
 \end{eqnarray*}
 
-Dipole energy is assumed to be constant, order parameter angle $\theta$
-is fixed at $\cos^{-1}(-1/4)$.
+{\bf Note:}\\
+- Surface terms are not clear. $d$ is calculated in GL approximation.\\
+- No information about $\lambda/\Omega$ (only counterflow part is known
+which is impotant at high temperatures).\\
+- Dipole energy is assumed to be constant, $\theta=\cos^{-1}(-1/4)$.\\
 
 \eject
 \section*{Usage}
@@ -105,6 +110,9 @@ vr(), vz(), vf()  -- velocity profile
 lr(), lz(), lf()  -- vortex polarization
 w()    -- vortex dencity
 apsi() -- magnon wavefunction amplitude
+
+energy -- final energy after minimization
+err    -- error code after minimization
 \end{verbatim}
 
 Following functions are provided to calculate texture:
@@ -138,6 +146,8 @@ to find energy minimum. Parameter {\tt msglev} is used to control verbosity
 level. To turn off all messages use -3.
 
 \item {\bf text1r\_print(filename)} -- Print all data to a file.
+
+Additional {\tt matlab} functions are provided to deal with magnon condensates (see below).
 
 \end{itemize}
 
@@ -202,6 +212,9 @@ Default value is -3/
 
 \end{itemize}
 
+\section*{Additional matlab functions}
+
+...
 
 \section*{Restrictions and TODO list}
 
@@ -220,14 +233,11 @@ $n_x/(1+n_z)$ and $n_y/(1+n_z)$ as minimization parameters.
 \item TODO: include dipolar energy, vary also $\theta$ angle (or
 something like $n_i/\cos\theta$).
 
-\item TODO: Use $\beta_M$ instead of $\Psi$.
-
 \item TODO: Include eigenvalue solver for magnon wave function,
 include non-uniform magnetic field...
 
 \end{itemize}
 
-\eject
 \section*{Technical details}
 
 \subsection*{Program structure}
@@ -250,6 +260,7 @@ as 1-d array suitable for minimization (see below).
 
 \item {\tt minimize} subroutine does minimization.
 \end{itemize}
+
 
 
 \subsection*{Texture representation for minimization}

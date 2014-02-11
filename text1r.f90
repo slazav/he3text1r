@@ -45,7 +45,7 @@
           text_bn(i) = 2*acos(0D0)*hh + acos(-zz*1D0/sqrt(5D0)) * &
                        dble(i-1)/dble(text_n-1)
           text_rr(i)=text_r*dble(i-1)/dble(text_n-1)
-          text_apsi(i)=0D0
+          text_bm(i)=0D0
           text_vr(i)=0D0
           text_vz(i)=0D0
           text_vf(i)=0D0
@@ -166,13 +166,13 @@
       &              '  ' F9.5 ' ' F9.5 ' ' F9.5                         &
       &              '  ' F9.5 ' ' F9.5 ' ' F9.5                         &
       &              '  ' F9.5)
-        write(fd, 103) 'r,cm', 'a_n,deg', 'b_n,deg', 'apsi',             &
+        write(fd, 103) 'r,cm', 'a_n,deg', 'b_n,deg', 'bm,deg',           &
       &                'vr,cm/s', 'vz,cm/s', 'vf,cm/s',                  &
       &                'lr', 'lz', 'lf','w'
         do i=1,text_n
           write (fd,104) text_rr(i),                                     &
       &                  text_an(i)*r2d, text_bn(i)*r2d,                 &
-      &                  text_apsi(i),                                   &
+      &                  text_bm(i)*r2d,                                 &
       &                  text_vr(i),text_vz(i),text_vf(i),               &
       &                  text_lr(i),text_lz(i),text_lf(i),               &
       &                  text_w(i)
@@ -233,7 +233,7 @@
           text_n,text_an,text_bn, 1D-10)
         do i=2,text_n
           call text1r_ebulk_selfcheck( &
-            text_an(i), text_bn(i), text_apsi(i), &
+            text_an(i), text_bn(i), text_bm(i), &
                  text_vz(i), text_vr(i), text_vf(i), &
                  text_lz(i), text_lr(i), text_lf(i), &
                  text_w(i), 1D-3, 1D-4)
@@ -330,12 +330,10 @@
           if (dabs(a(i) - an(i)) > e) then
             write (*,*) 'text1r_conv_selfcheck failed for A->X->A conversion:'
             write (*,*) 'i: ', i, ' A1: ', an(i), ' A2: ', a(i)
-!            return
           endif
           if (dabs(b(i) - bn(i)) > e) then
             write (*,*) 'text1r_conv_selfcheck failed for B->X->B conversion:'
             write (*,*) 'i: ', i, ' B1: ', bn(i), ' B2: ', b(i)
-!            return
           endif
         enddo
       end
@@ -383,7 +381,6 @@
           if ( dabs( der1/der2 - 1 ) > e ) then
             write (*,*) 'text1r_mfunc_selfcheck failed for derivative dE/dXi:'
             write (*,*) 'i: ', i, ' (e2-e1)/dx: ', der1, ' ex*dx: ', der2
-!            return
           endif
         enddo
       end
@@ -420,8 +417,6 @@
         integer i,n
         real*8 a(n), b(n), eai(n), ebi(n)
         real*8 rp,rm,bp,bm,ap,am,ei
-        real*8 apsip, vzp,vrp,vfp,lzp,lrp,lfp,wp
-        real*8 apsim, vzm,vrm,vfm,lzm,lrm,lfm,wm
         real*8 da,db
         real*8 E0,Ea,Eb,Eda,Edb
         real*8 E1, E2,E1a,E1b,E2a,E2b
@@ -446,7 +441,7 @@
 
           ! bulk energy at the i point
           if (i.eq.1) then
-            call text1r_ebulk(a(i),b(i), text_apsi(i), &
+            call text1r_ebulk(a(i),b(i), text_bm(i), &
                  text_vz(i), text_vr(i), text_vf(i), &
                  text_lz(i), text_lr(i), text_lf(i), &
                  text_w(i), E1, E1a, E1b)
@@ -456,7 +451,7 @@
             E1b=E2b
           endif
           ! bulk energy at the i+1 point
-          call text1r_ebulk(a(i+1),b(i+1), text_apsi(i+1), &
+          call text1r_ebulk(a(i+1),b(i+1), text_bm(i+1), &
                text_vz(i+1), text_vr(i+1), text_vf(i+1), &
                text_lz(i+1), text_lr(i+1), text_lf(i+1), &
                text_w(i+1), E2, E2a, E2b)
@@ -525,7 +520,6 @@
           if ( dabs( der1/der2 - 1 ) > e ) then
             write (*,*) 'text1r_eint_selfcheck failed for derivative dE/dBi:'
             write (*,*) 'i: ', i, ' (e2-e1)/db: ', der1, ' ea1*db: ', der2
-            return
           endif
 
           a(i) = a(i) + d
@@ -536,7 +530,6 @@
           if ( dabs( der1/der2 - 1 ) > e ) then
             write (*,*) 'text1r_eint_selfcheck failed for derivative dE/dAi:'
             write (*,*) 'i: ', i, ' (e2-e1)/da: ', der1, ' ea1: ', der2
-            return
           endif
         enddo
       end
@@ -552,12 +545,12 @@
 !!   lo for non-zero rotation
 !!   vd for non-zero flow
 !!   de and xi
-      subroutine text1r_ebulk(a,b, apsi, vz,vr,vf, lz,lr,lf, w,&
+      subroutine text1r_ebulk(a,b, bm, vz,vr,vf, lz,lr,lf, w,&
                           E,Ea,Eb)
         implicit none
         include 'text1r.fh'
         real*8 a,b,E,Ea,Eb
-        real*8 apsi, vz,vr,vf, lz,lr,lf, w
+        real*8 bm, vz,vr,vf, lz,lr,lf, w
         real*8 nz,nr,nf, rzz,rzr,rzf
         real*8 sin_a, sin_b, cos_a, cos_b, cos2b, sin2b
         real*8 con1, con2, help, c,s
@@ -597,9 +590,9 @@
         Eb = Eb + sin2b
 
         ! spin-orbit free energy
-        help = 15D0 * text_ld / text_a / text_h**2
-        E = E + help * (apsi * sin_b)**2
-        Eb = Eb + help * sin2b * apsi**2
+        help = 15D0 * text_ld / text_a / text_h**2  * sin(bm/2)**2
+        E = E + help * sin_b**2
+        Eb = Eb + help * sin2b
 
         ! flow free energy F_HV
         ! v_d = sqrt(2/5 a/lhv)
@@ -626,23 +619,23 @@
       end
 
 ! Self test for ebulk derivatives
-      subroutine text1r_ebulk_selfcheck(a,b, apsi, vz,vr,vf, lz,lr,lf, w, d, e)
+      subroutine text1r_ebulk_selfcheck(a,b, bm, vz,vr,vf, lz,lr,lf, w, d, e)
         implicit none
         real*8 a,b,d,e
         real*8 E1,Ea1,Eb1
         real*8 E2,Ea2,Eb2
         real*8 der1,der2
-        real*8 apsi, vz,vr,vf, lz,lr,lf, w
+        real*8 bm, vz,vr,vf, lz,lr,lf, w
 
-        call text1r_ebulk(a,b, apsi, vz,vr,vf, lz,lr,lf, w, E1,Ea1,Eb1)
-        call text1r_ebulk(a+d,b, apsi, vz,vr,vf, lz,lr,lf, w, E2,Ea2,Eb2)
+        call text1r_ebulk(a,b, bm, vz,vr,vf, lz,lr,lf, w, E1,Ea1,Eb1)
+        call text1r_ebulk(a+d,b, bm, vz,vr,vf, lz,lr,lf, w, E2,Ea2,Eb2)
         der1=(E2-E1)/d
         der2=(Ea2+Ea1)/2D0
         if ( dabs( der1/der2 - 1 ) > e ) then
           write(*,*) 'text1r_ebulk_selfcheck failed for dE/da:'
           write(*,*) ' a: ', a, ' b: ', b, ' (E2-E1)/da: ', der1, ' Ea: ', der2
         endif
-        call text1r_ebulk(a,b+d, apsi, vz,vr,vf, lz,lr,lf, w, E2,Ea2,Eb2)
+        call text1r_ebulk(a,b+d, bm, vz,vr,vf, lz,lr,lf, w, E2,Ea2,Eb2)
         der1=(E2-E1)/d
         der2=(Eb2+Eb1)/2D0
         if ( dabs( der1/der2 - 1 ) > e ) then
@@ -725,7 +718,6 @@
         if ( dabs( der1/der2 - 1 ) > e ) then
           write(*,*) 'text1r_egrad_selfcheck failed for dE/da:'
           write(*,*) ' a: ', a, ' b: ', b, ' (E2-E1)/da: ', der1, ' Ea: ', der2
-          return
         endif
 
         call text1r_egrad(r, a,b+d,g0,g0,E2,Ea2,Eb2,Eda2,Edb2)
@@ -734,7 +726,6 @@
         if ( dabs( der1/der2 - 1 ) > e ) then
           write(*,*) 'text1r_egrad_selfcheck failed for dE/db:'
           write(*,*) ' a: ', a, ' b: ', b, ' (E2-E1)/db: ', der1, ' Eb: ', der2
-          return
         endif
 
         call text1r_egrad(r, a,b,g0+d,g0,E2,Ea2,Eb2,Eda2,Edb2)
@@ -743,7 +734,6 @@
         if ( dabs( der1/der2 - 1 ) > e ) then
           write(*,*) 'text1r_egrad_selfcheck failed for dE/d(da):'
           write(*,*) ' a: ', a, ' b: ', b, ' (E2-E1)/d(da): ', der1, ' Eda: ', der2
-          return
         endif
 
         call text1r_egrad(r, a,b,g0,g0+d,E2,Ea2,Eb2,Eda2,Edb2)
@@ -752,7 +742,6 @@
         if ( dabs( der1/der2 - 1 ) > e ) then
           write(*,*) 'text1r_egrad_selfcheck failed for dE/d(db):'
           write(*,*) ' a: ', a, ' b: ', b, ' (E2-E1)/d(db): ', der1, ' Edb: ', der2
-          return
         endif
       end
 
@@ -820,7 +809,6 @@
         if ( dabs( der1/der2 - 1 ) > e ) then
           write(*,*) 'text1r_esurf_selfcheck failed for dE/da:'
           write(*,*) ' a: ', a, ' b: ', b, ' (E2-E1)/da: ', der1, ' Ea: ', der2
-          return
         endif
         call text1r_esurf(a,b+d,E2,Ea2,Eb2)
         der1=(E2-E1)/d
@@ -828,7 +816,6 @@
         if ( dabs( der1/der2 - 1 ) > e ) then
           write(*,*) 'text1r_esurf_selfcheck failed for dE/db:'
           write(*,*) ' a: ', a, ' b: ', b, ' (E2-E1)/db: ', der1, ' Eb: ', der2
-          return
         endif
       end
 

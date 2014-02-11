@@ -1,7 +1,7 @@
 function test_m()
   addpath ../matlab;
 
-  ttc = 0.99;     % Temperature, T/Tc
+  ttc = 0.93;     % Temperature, T/Tc
   p   = 15;      % Pressure, bar
   nu0 = 926320;  % Larmor frequency, Hz
   r   = 0.3;     % Conteiner raduis, cm
@@ -16,9 +16,9 @@ function test_m()
   dat = text1r_init(ttc, p, nu0, r, n, itype);
 
   % Do minimization:
-  dat = text1r_selfcheck(dat);
+%  dat = text1r_selfcheck(dat);
   dat = text1r_minimize(dat);
-  dat = text1r_selfcheck(dat);
+%  dat = text1r_selfcheck(dat);
 
 
   if dat.err==3

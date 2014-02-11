@@ -1,4 +1,4 @@
-function test_m1()
+function test_m2()
   addpath ../matlab;
 
   ttc = 0.13;     % Temperature, T/Tc
@@ -17,8 +17,8 @@ function test_m1()
   % Initialize texture calculation:
   dat = text1r_init(ttc, p, nu0, r, n, itype);
 
-  for bm0 = 0:5:50
-    dat = text1r_qball_bm0(dat, bm0/180*pi);
+  for e = 0:0.0001:0.001
+    dat = text1r_qball_e(dat, e);
     plot(dat.rr, 180/pi*dat.an, 'r.-');
     plot(dat.rr, 180/pi*dat.bn, 'b.-');
     plot(dat.rr, 180/pi*abs(dat.bm), 'g.-');

@@ -1,4 +1,8 @@
-function [dat e0] = text1r_wave(dat)
+function [psi e0] = text1r_wave(dat)
+  % Calculate ground state wavefunction Psi (no normalization)
+  % for the potential sin(dat.bn).^2
+  % psi = sqrt(2S/hbar) sin(bm/2)
+
   format long;
 
   N=dat.n-1;
@@ -10,7 +14,7 @@ function [dat e0] = text1r_wave(dat)
   h   = R/(N+1);  % h=step size
   r   = (h:h:((N-1)*h+h))';   %discretization points starting from h'
 
-  ttV=(sin(dat.bn)).^2;
+  ttV=sin(dat.bn).^2;
 
   %Interpolating the potential within the signifficant radius
   V=spdiags(ttV(2:N+1),0,N,N);
@@ -70,6 +74,6 @@ function [dat e0] = text1r_wave(dat)
     en=en'; %'
     eigv=eigv(:,ii);
   end
-  dat.apsi=[eigv(:,1); 0];
+  psi=[eigv(:,1); 0];
   e0=en(1);
 end

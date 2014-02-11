@@ -1,4 +1,4 @@
-function test_m1()
+function test_rel()
   addpath ../matlab;
 
   ttc = 0.13;     % Temperature, T/Tc
@@ -12,16 +12,33 @@ function test_m1()
   omega_v = 0.2; % Rotation velocity of vortex cluster, rad/s
   kr      = 1;   % Parameter for a twisted vortex profile
 
-  figure; hold on;
 
   % Initialize texture calculation:
   dat = text1r_init(ttc, p, nu0, r, n, itype);
 
-  for bm0 = 0:5:50
-    dat = text1r_qball_bm0(dat, bm0/180*pi);
+  e0=0.001;
+  tau=10;
+  time=1:50;
+  e=e0*exp(-time/tau);
+
+  figure; hold on;
+  for i=1:length(time)
+    [dat fre(i)] = text1r_qball_e(dat, e(i));
+    amp(i)=trapz(dat.rr, 2*pi*dat.rr.*sin(abs(dat.bm)));
     plot(dat.rr, 180/pi*dat.an, 'r.-');
     plot(dat.rr, 180/pi*dat.bn, 'b.-');
     plot(dat.rr, 180/pi*abs(dat.bm), 'g.-');
   end
-  xlim([0, r]);
+
+%  plot(time, e, 'r.-');
+%  plot(time, fre, 'g.-');
+%  plot(time, amp, 'b.-');
+
+  figure; hold on;
+  plot(fre, amp, 'r.-');
+
+  figure; hold on;
+  plot(time, amp, 'r.-');
+  plot(time, fre, 'b.-');
+
 end
