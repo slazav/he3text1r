@@ -33,12 +33,14 @@
         text_r = r
         text_h = const_2pi*nu0/he3_gyro
         text_n = n
+        text_err = 0
+        text_energy = 0D0
         if (check_size()) return
 
         ! initial conditions for alpha_n, beta_n
+        hh = itype/2
+        zz = (itype - hh*2)*2-1 ! parity of itype -1 or 1
         do i=1,text_n
-          hh = itype/2
-          zz = (itype - hh*2)*2-1 ! parity of itype -1 or 1
           text_an(i) = -zz*acos(0.5D0)
           text_bn(i) = 2*acos(0D0)*hh + acos(-zz*1D0/sqrt(5D0)) * &
                        dble(i-1)/dble(text_n-1)
@@ -182,16 +184,16 @@
       subroutine text1r_minimize(msglev)
         implicit none
         include 'text1r.fh'
-        integer maxnpar, lw, ierror, msglev
+        integer maxnpar, lw, msglev
         parameter (maxnpar = 2*MAXN-2)
         parameter (lw = 14*maxnpar)
-        real*8 x(maxnpar), ex(maxnpar), e
+        real*8 x(maxnpar), ex(maxnpar)
         real*8 w(lw)
         logical check_size
         external text1r_mfunc
         if (check_size()) return
         call text1r_text2x(text_n, text_an, text_bn, x)
-        call tn(ierror,2*text_n-2,x,e,ex,w,lw,text1r_mfunc,msglev)
+        call tn(text_err,2*text_n-2,x,text_energy,ex,w,lw,text1r_mfunc,msglev)
         call text1r_x2text(text_n, text_an, text_bn, x)
       end
 
@@ -257,8 +259,8 @@
         integer i,n
         real*8 a(n),b(n),x(2*n-2)
         do i=2,n
-          x(i-1)       = a(i)
-          x(n-1 + i-1) = b(i)
+          x(i-1)       = -sin(b(i))*cos(a(i))/(1+cos(b(i)))
+          x(n-1 + i-1) =  sin(b(i))*sin(a(i))/(1+cos(b(i)))
         enddo
       end
 
@@ -267,9 +269,22 @@
         implicit none
         integer i,n
         real*8 a(n),b(n),ea(n),eb(n),ex(2*n-2)
+        real*8 dau,dav,dbu,dbv,cb
         do i=2,n
-          ex(i-1) = ea(i)
-          ex(n-1 + i-1) = eb(i)
+          cb=cos(b(i))
+          if (1-cb.gt.1D-30) then
+            dau =  sin(b(i))*sin(a(i))/(1-cb)
+            dav =  sin(b(i))*cos(a(i))/(1-cb)
+            dbu = -sin(b(i))*cos(a(i))*sqrt((1+cb)/(1-cb))
+            dbv =  sin(b(i))*sin(a(i))*sqrt((1+cb)/(1-cb))
+          else
+            dau =  sin(a(i)) * 2/1D-30
+            dav =  cos(a(i)) * 2/1D-30
+            dbu = -2*cos(a(i))
+            dbv =  2*sin(a(i))
+          endif
+          ex(i-1)       = ea(i)*dau + eb(i)*dbu
+          ex(n-1 + i-1) = ea(i)*dav + eb(i)*dbv
         enddo
       end
 
@@ -278,10 +293,19 @@
       subroutine text1r_x2text(n,a,b, x)
         implicit none
         integer i,n
-        real*8 a(n),b(n),x(2*n-2)
-        do i=2,n
-          a(i) = x(i-1)
-          b(i) = x(i-1+n-1)
+        real*8 a(n),b(n),x(2*n-2),u,v
+        do i=n,2,-1
+          u = x(i-1)
+          v = x(i-1+n-1)
+          b(i) = acos((1-u**2-v**2)/(1+u**2+v**2))
+          if (abs(b(i)).gt.1D-10) then
+            a(i) = 4D0*atan(1D0)-atan2(v, u)
+          else if (i.lt.n) then
+            a(i)=a(i+1)
+          else
+            a(i)=0D0
+          endif
+!          write(*,*) a(i),b(i),u,v
         enddo
         a(1)=a(2)
         b(1)=0D0
@@ -293,10 +317,10 @@
         include 'text1r.fh'
         integer n,i
         real*8 a(n),b(n),x(2*MAXN-2),e
-        real*8 an(n),bn(n)
+        real*8 an(MAXN),bn(MAXN)
 
-        real*8 E1,Ea1(n),Eb1(n)
-        real*8 E2,Ea2(n),Eb2(n)
+        real*8 E1,Ea1(MAXN),Eb1(MAXN)
+        real*8 E2,Ea2(MAXN),Eb2(MAXN)
         real*8 der1,der2
 
         ! check conversions a,b -> x - a,b
@@ -306,12 +330,12 @@
           if (dabs(a(i) - an(i)) > e) then
             write (*,*) 'text1r_conv_selfcheck failed for A->X->A conversion:'
             write (*,*) 'i: ', i, ' A1: ', an(i), ' A2: ', a(i)
-            return
+!            return
           endif
           if (dabs(b(i) - bn(i)) > e) then
             write (*,*) 'text1r_conv_selfcheck failed for B->X->B conversion:'
             write (*,*) 'i: ', i, ' B1: ', bn(i), ' B2: ', b(i)
-            return
+!            return
           endif
         enddo
       end
@@ -325,10 +349,11 @@
       subroutine text1r_mfunc(nx,x,e,ex)
         !! Wrapper for egrad function for using in the TN.
         implicit none
+        include 'text1r.fh'
         integer i,nx,n
         real*8 e, x(nx),ex(nx)
-        real*8 a(nx/2+1), b(nx/2+1)
-        real*8 ea(nx/2+1), eb(nx/2+1)
+        real*8 a(MAXN), b(MAXN)
+        real*8 ea(MAXN), eb(MAXN)
         n=nx/2+1
         call text1r_x2text(n, a,b, x)
         call text1r_eint(n,a,b,e,ea,eb)
@@ -358,7 +383,7 @@
           if ( dabs( der1/der2 - 1 ) > e ) then
             write (*,*) 'text1r_mfunc_selfcheck failed for derivative dE/dXi:'
             write (*,*) 'i: ', i, ' (e2-e1)/dx: ', der1, ' ex*dx: ', der2
-            return
+!            return
           endif
         enddo
       end

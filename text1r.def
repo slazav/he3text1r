@@ -37,5 +37,8 @@ ARR(w)      // vortex dencity, ??
 
 ARR(apsi)   // magnon wavefunction amplitude
 
+DBL(energy) // final energy after minimization
+
 INT(n)     // number of points
+INT(err)   // error code after minimization
 
