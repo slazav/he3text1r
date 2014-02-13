@@ -19,7 +19,7 @@ function [dat e0] = text1r_qball_e(dat, E)
 
     % renormalize wave-function and set beta_m
     int = trapz(dat.rr, 2*pi*dat.rr.*psi.^2);
-    psi = psi/int * E; % now integral(psi^2) = E
+    psi = psi*sqrt(E/int); % now integral(psi^2) = E
 
     % here psi=sqrt(2) sin(bm/2),
     %      |psi|^2 = 1-cos(bm)
