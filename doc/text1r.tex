@@ -277,14 +277,27 @@ $$
 u=\frac{n_r}{1+n_z}, \qquad  v=\frac{n_f}{1+n_z}.
 $$
 
-Inverse transformation is
 $$
 n_z = \frac{1-u^2-v^2}{1+u^2+v^2},\qquad
 n_r = \frac{2u}{1+u^2+v^2},\qquad
 n_f = \frac{2v}{1+u^2+v^2},\qquad
 $$
 
-We also need
+\def\cb{\cos\beta}
+\def\sb{\sin\beta}
+\def\ca{\cos\alpha}
+\def\sa{\sin\alpha}
+
+$$
+u=-\frac{\sb\ca}{1+\cb}, \qquad  v=\frac{\sb\sa}{1+\cb}.
+$$
+
+$$
+a={\rm acos}\frac{1-u^2-v^2}{1+u^2+v^2}, \qquad b=\pi-{\rm atan}\frac{v}{u}
+$$
+
+
+We need
 $$
 \ddd{E}{u} = \ddd{E}{\alpha}\ddd{a}{u} + \ddd{E}{\beta}\ddd{b}{u}
 $$
@@ -292,6 +305,13 @@ $$
 \ddd{E}{v} = \ddd{E}{\alpha}\ddd{a}{v} + \ddd{E}{\beta}\ddd{b}{v}
 $$
 
-We don't want to minimize $r=0$ point where $n_z=1$ because of cylindrical symmetry.
+$$
+\ddd{a}{u} = -2\sb\ca/\sa  / (1+\sa^2)(1+\cb)
+$$
+
+$$
+\ddd{a}{v} = 2\sb\sa/\sa  / (1+\sa^2)(1+\cb)
+$$
+
 \end{document}
 

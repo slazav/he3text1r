@@ -2,9 +2,9 @@ function test_rel()
   addpath ../matlab;
   addpath ../../lib/matlab;
 
-  ttc = 0.13;     % Temperature, T/Tc
-  p   = 0;      % Pressure, bar
-  nu0 = 826320;  % Larmor frequency, Hz
+  ttc = 0.13;    % Temperature, T/Tc
+  p   = 0.5;     % Pressure, bar
+  nu0 = 550000;  % Larmor frequency, Hz
   r   = 0.3;     % Conteiner raduis, cm
   itype   = 0;   % Initial conditions: 0 - normal, 1 - with 90deg peak...
   n       = 100; % Number of points
@@ -18,9 +18,9 @@ function test_rel()
   tau=10;
   dt=1;
   time=1:dt:35;
-  a=0.0001;
+  a=0.0004;
 
-  lll=1;
+  lll=0;
 
   if lll
     load test_rel.dat
