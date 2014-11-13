@@ -1,6 +1,6 @@
 all: test_c test_f77 test_f90
 
-LIBS= ../libtext1r.a ../../lib/libhe3.a
+LIBS= ../libtext1r.a ../../he3lib/libhe3.a ../tn/tn.a
 
 test_c:  test_c.o $(LIBS)
 	$(CC) -g $+ -lgfortran -lm -o $@

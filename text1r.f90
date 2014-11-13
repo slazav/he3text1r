@@ -23,8 +23,8 @@
         include 'he3.f90h'
 
         text_a = he3_text_a(ttc,p)
-        text_lg2 = he3_text_lg2(ttc,p)
-        text_lg1 = text_lg2 * (2 + he3_text_delta(ttc,p))
+        text_lg1 = he3_grad_lg1(ttc,p)
+        text_lg2 = he3_grad_lg2(ttc,p)
         text_lhv = he3_text_lhv(ttc,p)
         text_lsg = 3D0
         text_ld  = he3_ld(ttc,p)
