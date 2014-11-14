@@ -1,7 +1,7 @@
 function test_m()
   addpath ../matlab;
 
-  ttc = 0.8;     % Temperature, T/Tc
+  ttc = 0.4;     % Temperature, T/Tc
   p   = 15;      % Pressure, bar
   nu0 = 826320;  % Larmor frequency, Hz
   r   = 0.3;     % Conteiner raduis, cm
@@ -14,10 +14,11 @@ function test_m()
 
   % Initialize texture calculation:
   dat = text1r_init(ttc, p, nu0, r, n, itype);
+dat.H
 
   % Set vortex and velocity profile if needed:
-  dat.lo=5; % lambda/omega is not set by default
-  dat = text1r_set_vortex_cluster(dat, omega, omega_v);
+%  dat.lo=5; % lambda/omega is not set by default
+%  dat = text1r_set_vortex_cluster(dat, omega, omega_v);
 % dat = text1r_set_vortex_uniform_(dat, omega, omega_v);
 % dat = text1r_set_vortex_twisted_(dat, omega, kr);
 

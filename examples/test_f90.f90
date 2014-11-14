@@ -3,7 +3,7 @@
     real*8 ttc, p, nu0, r, omega, omega_v, kr
     integer n, itype, msglev
 
-    data  ttc /0.8D0/,     &! Temperature, T/Tc
+    data  ttc /0.4D0/,     &! Temperature, T/Tc
           p   /15D0/,      &! Pressure, bar
           nu0 /826320D0/,  &! Larmor frequency, Hz
           r   /0.3D0/,     &! Conteiner raduis, cm
@@ -18,10 +18,10 @@
     call text1r_init(ttc, p, nu0, r, n, itype)
 
 !    Set vortex and velocity profile if needed:
-    text_lo=5; ! lambda/omega is not set by default
-    call text1r_set_vortex_cluster(omega, omega_v);
-!    call text1r_set_vortex_uniform(omega, omega_v);
-!    call text1r_set_vortex_twisted(omega, kr);
+!    text_lo=5; ! lambda/omega is not set by default
+!    call text1r_set_vortex_cluster(omega, omega_v);
+!      call text1r_set_vortex_uniform(omega, omega_v);
+!      call text1r_set_vortex_twisted(omega, kr);
 
 !    Do minimization:
     call text1r_minimize(msglev)

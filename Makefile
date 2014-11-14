@@ -45,3 +45,4 @@ clean:
 	rm -f *.o *.a *.so
 	rm -f text1r.fh text1r.h
 	rm -f *.mexglx *.mex
+	make -C tn clean

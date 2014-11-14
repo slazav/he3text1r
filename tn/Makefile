@@ -1,7 +1,7 @@
 all: tn.a
 
 GOBJS =	blas.o tn.o
-FFLAGS = -g -c -FI -zero -fno-automatic -std=legacy
+FFLAGS = -g -c -FI -zero -fno-automatic -std=legacy -fPIC
 FC = gfortran
 
 .SUFFIXES: .f .o

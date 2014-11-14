@@ -3,7 +3,7 @@
 #include <string.h>
 
 main(){
-  double ttc = 0.8;     // Temperature, T/Tc
+  double ttc = 0.4;     // Temperature, T/Tc
   double p   = 15;      // Pressure, bar
   double nu0 = 826320;  // Larmor frequency, Hz
   double r   = 0.3;     // Conteiner raduis, cm
@@ -19,10 +19,10 @@ main(){
   text1r_init_(&ttc, &p, &nu0, &r, &n, &itype);
 
   // Set vortex and velocity profile if needed:
-  text1r_pars_.lo=5; // lambda/omega is not set by default
-  text1r_set_vortex_cluster_(&omega, &omega_v);
-//  text1r_set_vortex_uniform_(&omega, &omega_v);
-//  text1r_set_vortex_twisted_(&omega, &kr);
+//  text1r_pars_.lo=5; // lambda/omega is not set by default
+//  text1r_set_vortex_cluster_(&omega, &omega_v);
+//    text1r_set_vortex_uniform_(&omega, &omega_v);
+//    text1r_set_vortex_twisted_(&omega, &kr);
 
   // Do minimization:
   text1r_minimize_(&msglev);
