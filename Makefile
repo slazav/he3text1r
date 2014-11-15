@@ -19,14 +19,14 @@ all: libtext1r.a libtext1r.so octave doc
 doc:
 	make -C doc
 
-text1r.fh text1r.h: text1r.def make_text1r
-	./make_text1r
+text1r.fh text1r.h: text1r.def make_inc
+	./make_inc
 
 libtext1r.a: text1r.o tn/tn.a
 	ar rs $@ $+
 
 libtext1r.so: text1r.o tn/tn.a
-	$(FC) --shared -fPIC -o $@ $+
+	$(FC) $(LDFLAGS) --shared -fPIC -o $@ $+  $(LDLIBS)
 
 tn/tn.a:
 	make -C tn
