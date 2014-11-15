@@ -1,0 +1,52 @@
+\subsection*{Texture representation for minimization}
+
+We don't want to minimize directly $F(n_r, n_z, n_f)$ because additional
+condition $n_i n_i = 1$ should be taken into account. We also don't want
+to minimize $F(\alpha, \beta$) because if $\beta=0$ then $\alpha$
+is not defined.
+
+One possibility is to use a projection of the $\bf n$ sphere into a plane
+$z=0$ from a $z=-1, r=0$ point:
+
+$$
+u=\frac{n_r}{1+n_z}, \qquad  v=\frac{n_f}{1+n_z}.
+$$
+
+$$
+n_z = \frac{1-u^2-v^2}{1+u^2+v^2},\qquad
+n_r = \frac{2u}{1+u^2+v^2},\qquad
+n_f = \frac{2v}{1+u^2+v^2},\qquad
+$$
+
+\def\cb{\cos\beta}
+\def\sb{\sin\beta}
+\def\ca{\cos\alpha}
+\def\sa{\sin\alpha}
+
+$$
+u=-\frac{\sb\ca}{1+\cb}, \qquad  v=\frac{\sb\sa}{1+\cb}.
+$$
+
+$$
+a={\rm acos}\frac{1-u^2-v^2}{1+u^2+v^2}, \qquad b=\pi-{\rm atan}\frac{v}{u}
+$$
+
+
+We need
+$$
+\ddd{E}{u} = \ddd{E}{\alpha}\ddd{a}{u} + \ddd{E}{\beta}\ddd{b}{u}
+$$
+$$
+\ddd{E}{v} = \ddd{E}{\alpha}\ddd{a}{v} + \ddd{E}{\beta}\ddd{b}{v}
+$$
+
+$$
+\ddd{a}{u} = -2\sb\ca/\sa  / (1+\sa^2)(1+\cb)
+$$
+
+$$
+\ddd{a}{v} = 2\sb\sa/\sa  / (1+\sa^2)(1+\cb)
+$$
+
+\end{document}
+

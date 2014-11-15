@@ -14,7 +14,6 @@ function test_m()
 
   % Initialize texture calculation:
   dat = text1r_init(ttc, p, nu0, r, n, itype);
-dat.H
 
   % Set vortex and velocity profile if needed:
 %  dat.lo=5; % lambda/omega is not set by default

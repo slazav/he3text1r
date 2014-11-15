@@ -1,9 +1,10 @@
-function [psi e0] = text1r_wave(dat)
-  % Calculate ground state wavefunction Psi (no normalization)
+function [psi en] = text1r_wave(dat, states)
+  % Calculate magnon wavefunction in a textural potential (no normalization)
   % for the potential sin(dat.bn).^2
   % psi = sqrt(2S/hbar) sin(bm/2)
 
   format long;
+  if nargin <2; states=0; end
 
   N=dat.n-1;
   R=dat.R * 1e-2; % cm->m
@@ -66,14 +67,18 @@ function [psi e0] = text1r_wave(dat)
     en=zeros(1,s);
     for n=1:s
      en(n)=Energies(n,n);
-     eigv=eigv(:,n);
+     psi=eigv(:,n);
     end
   else %method 2: no convergence problems, slow
-    [eigv, en]=eig(full(K));
+    [psi, en]=eig(full(K));
     [en,ii]=sort(diag(en));
     en=en'; %'
-    eigv=eigv(:,ii);
+    psi=psi(:,ii);
   end
-  psi=[eigv(:,1); 0];
-  e0=en(1);
+
+  psi = psi(:,states+1);
+  en=en(states+1);
+
+  psi = [psi; zeros(size(psi(1,:)))];
+
 end

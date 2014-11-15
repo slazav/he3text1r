@@ -33,6 +33,9 @@ ARR(w)      // vortex dencity, ??
 ARR(bm)     // tilting angle of precessing magnetization
 
 DBL(energy) // final energy after minimization
+DBL(db0)    // d(bn)/dr at r=0 after minimization
+DBL(db1)    // d(bn)/dr at r=R after minimization
+DBL(bmax)   // bn at r=R after minimization
 INT(err)    // error code after minimization
 INT(n)      // number of points
 

@@ -191,10 +191,37 @@
         real*8 w(lw)
         logical check_size
         external text1r_mfunc
+        integer nn,i
+
+        ! additional parameters (default values, do not change)
+        integer MAXIT, MAXFUN
+        real*8 ETA,STEPMX,ACCRCY,XTOL,MCHPR1
+
+        nn=2*text_n-2
+
+        MAXIT = nn/2
+        IF (MAXIT .GT. 50) MAXIT = 50
+        IF (MAXIT .LE. 0) MAXIT = 1
+        MAXFUN = 150*nn
+        ETA = .25D0
+        STEPMX = 1.D1
+        ACCRCY = 1.D2*MCHPR1()
+        XTOL = DSQRT(ACCRCY)
+
         if (check_size()) return
         call text1r_text2x(text_n, text_an, text_bn, x)
-        call tn(text_err,2*text_n-2,x,text_energy,ex,w,lw,text1r_mfunc,msglev)
-        call text1r_x2text(text_n, text_an, text_bn, x)
+        do i=1,20 ! we need several runs to catch small energy changes for flat textures
+          call lmqn(text_err, nn,x,text_energy,ex,w,lw, &
+                text1r_mfunc,msglev, &
+                MAXIT, MAXFUN, ETA, STEPMX, ACCRCY, XTOL)
+          if (text_err.eq.0) goto 10
+        enddo
+        write(*,*) "ERROR CODE = ", text_err, " after ", i, " iterations"
+10      call text1r_x2text(text_n, text_an, text_bn, x)
+        text_db0 = text_bn(2)/text_rr(2)
+        text_db1 = (text_bn(text_n)-text_bn(text_n-1))/ &
+                   (text_rr(text_n)-text_rr(text_n-1))
+        text_bmax = text_bn(text_n)
       end
 
 !      subroutine text1r_minimize_btn()
@@ -220,7 +247,7 @@
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-! Various chacks
+! Various checks
       subroutine text1r_selfcheck(msglev)
         implicit none
         include 'text1r.fh'

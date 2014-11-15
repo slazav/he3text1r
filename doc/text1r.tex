@@ -78,10 +78,14 @@ F_{SG} &=& (2\lambda_{G2} + \lambda_{SG})
 \end{eqnarray*}
 
 {\bf Note:}\\
-- Surface terms are not clear. $d$ is calculated in GL approximation.\\
-- No information about $\lambda/\Omega$ (only counterflow part is known
-which is impotant at high temperatures).\\
+- $\lambda/\Omega$ is not set automatically because it is not known
+  (only counterflow part is known which is impotant at high temperatures).\\
 - Dipole energy is assumed to be constant, $\theta=\cos^{-1}(-1/4)$.\\
+- Maximal number of points is hardcoded into the library. You can
+  increase it by changing MAXN parameter in {\tt make\_inc} script and
+  recompiling everything.\\
+- $\alpha_N$ can be noizy for flat textures where $\beta_N$ is near zero
+  (large $\xi_H$ limit)\\
 
 \eject
 \section*{Usage}
@@ -109,9 +113,13 @@ d     -- Textural surface parameter d [erg/(cm2 G2)]
 vr(), vz(), vf()  -- velocity profile
 lr(), lz(), lf()  -- vortex polarization
 w()    -- vortex dencity
-apsi() -- magnon wavefunction amplitude
+bm()   -- tilting angle of precessing magnetization
 
 energy -- final energy after minimization
+db0    -- d(bn)/dr at r=0 after minimization
+db1    -- d(bn)/dr at r=R after minimization
+bmax   -- bn at r=R after minimization
+
 err    -- error code after minimization
 \end{verbatim}
 
@@ -208,110 +216,50 @@ is a matlab structure with fields {\tt n, rr, an} etc.
 Default values: {\tt MAXN} and 0.
 
 \item {\tt msglev} parameter in {text1r\_minimize} can be omitted.
-Default value is -3/
+Default value is -3
 
 \end{itemize}
 
 \section*{Additional matlab functions}
-
-...
-
-\section*{Restrictions and TODO list}
-
 \begin{itemize}
+\item {\tt [psi en] = text1r\_wave(dat, states)}.
+ Calculate magnon wavefunction in a textural potential for states (0,1,2...)
 
-\item Maximal number of points is hardcoded into the library. You can
-increase it by changing MAXN parameter in {\tt make\_inc} script and
-recompiling everything.
+\item {\tt dat = text1r\_qball\_bm0(dat, bm0)}.
+ Calculate self-consistent texture and precessing magnetization
+ distibution for a given $\beta_M(r=0)$ value (in radians).
 
-\item Minimization of energy as a function $\alpha_N$ and $\beta_N$
-parameters is not stable near $\beta_N=0$ (because $\alpha_N$ is not
-defined there). This causes problems at high temperature, or high cell
-radius, or high magnetic field (large $\xi_H$ limit). TODO: use
-$n_x/(1+n_z)$ and $n_y/(1+n_z)$ as minimization parameters.
-
-\item TODO: include dipolar energy, vary also $\theta$ angle (or
-something like $n_i/\cos\theta$).
-
-\item TODO: Include eigenvalue solver for magnon wave function,
-include non-uniform magnetic field...
+\item {\tt [dat e0] = text1r\_qball\_e(dat, E)}.
+ Same, but for a given $\int (1-\cos\beta_M)$
 
 \end{itemize}
 
+\eject
 \section*{Technical details}
 
 \subsection*{Program structure}
 
 \begin{itemize}
-\item {\tt esurf} and {\tt ebulk} subroutines calculate surface and
-bulk energy and its derivatives as a function of texture ($\alpha$ and
-$\beta$) and texture gradients ($\partial\alpha/\partial r$,
-$\partial\beta/\partial r$ etc.). Texture can be represented in various
-forms ($\alpha, \beta$, or $\bf n$, or $R_{ij}$).
+\item{\tt ebulk}, {\tt egrad} and {\tt esurf} subroutines calculate
+bulk, gradient and surface energy and its derivatives as a function
+of texture ($\alpha$ and $\beta$) and texture gradients
+($\partial\alpha/\partial r$, $\partial\beta/\partial r$).
 
-\item {\tt egrad} subroutine calculates total energy as integral of bulk energy over volume
-plus integral of surface energy over surface and its derivatives as a
-function of texture and texture gradients at the whole grid.
+\item {\tt eint} subroutine calculates total energy as integral of bulk +
+gradient energy over volume plus integral of surface energy over surface
+and its derivatives as a function of texture and texture gradients at
+the whole grid.
 
 \item {\tt mfunc} is a wrapper for {\tt egrad}. Texture is represented
-as 1-d array suitable for minimization (see below).
-
-\item {\tt x2text} and {text2x} subroutines convert two representations of the texture.
+as 1-d array suitable for minimization. Conversion is done by
+{\tt x2text} and {text2x} subroutines.
 
 \item {\tt minimize} subroutine does minimization.
+
+\item $n_x/(1+n_z)$ and $n_y/(1+n_z)$ are used as minimization parameters.
+
 \end{itemize}
 
-
-
-\subsection*{Texture representation for minimization}
-
-We don't want to minimize directly $F(n_r, n_z, n_f)$ because additional
-condition $n_i n_i = 1$ should be taken into account. We also don't want
-to minimize $F(\alpha, \beta$) because if $\beta=0$ then $\alpha$
-is not defined.
-
-One possibility is to use a projection of the $\bf n$ sphere into a plane
-$z=0$ from a $z=-1, r=0$ point:
-
-$$
-u=\frac{n_r}{1+n_z}, \qquad  v=\frac{n_f}{1+n_z}.
-$$
-
-$$
-n_z = \frac{1-u^2-v^2}{1+u^2+v^2},\qquad
-n_r = \frac{2u}{1+u^2+v^2},\qquad
-n_f = \frac{2v}{1+u^2+v^2},\qquad
-$$
-
-\def\cb{\cos\beta}
-\def\sb{\sin\beta}
-\def\ca{\cos\alpha}
-\def\sa{\sin\alpha}
-
-$$
-u=-\frac{\sb\ca}{1+\cb}, \qquad  v=\frac{\sb\sa}{1+\cb}.
-$$
-
-$$
-a={\rm acos}\frac{1-u^2-v^2}{1+u^2+v^2}, \qquad b=\pi-{\rm atan}\frac{v}{u}
-$$
-
-
-We need
-$$
-\ddd{E}{u} = \ddd{E}{\alpha}\ddd{a}{u} + \ddd{E}{\beta}\ddd{b}{u}
-$$
-$$
-\ddd{E}{v} = \ddd{E}{\alpha}\ddd{a}{v} + \ddd{E}{\beta}\ddd{b}{v}
-$$
-
-$$
-\ddd{a}{u} = -2\sb\ca/\sa  / (1+\sa^2)(1+\cb)
-$$
-
-$$
-\ddd{a}{v} = 2\sb\sa/\sa  / (1+\sa^2)(1+\cb)
-$$
 
 \end{document}
 

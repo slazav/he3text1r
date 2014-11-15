@@ -1,6 +1,6 @@
 function dat = text1r_qball_bm0(dat, bm0)
-  % calculate self-consistent texture and precessing magnetization
-  % distibution for a given beta_m(r=0) value (in radians)
+  % Calculate self-consistent texture and precessing magnetization
+  % distibution for a given beta_m(r=0) value (in radians).
   % psi = sqrt(2S/hbar) sin(bm/2)
 
   ee=0;
