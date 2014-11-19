@@ -50,9 +50,11 @@ cat > $fh <<EOF
 
 EOF
 
-# write structire fields
+# write structure fields
 sed -n '
   s|//|!|
+  s|/\*|!|
+  s|\*/||
   s/ARR(\([a-zA-Z0-9_]\+\))/      real*8 text_\1(MAXN)/p
   s/DBL(\([a-zA-Z0-9_]\+\))/      real*8 text_\1/p
   s/INT(\([a-zA-Z0-9_]\+\))/      integer text_\1/p

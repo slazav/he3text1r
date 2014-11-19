@@ -41,8 +41,9 @@
         hh = itype/2
         zz = (itype - hh*2)*2-1 ! parity of itype -1 or 1
         do i=1,text_n
-          text_an(i) = -zz*acos(0.5D0)
-          text_bn(i) = 2*acos(0D0)*hh + acos(-zz*1D0/sqrt(5D0)) * &
+          text_an(i) = -dble(zz)*acos(0.5D0)
+          text_bn(i) = 2D0*acos(0D0)*dble(hh) + &
+                       acos(-dble(zz)*1D0/sqrt(5D0)) * &
                        dble(i-1)/dble(text_n-1)
           text_rr(i)=text_r*dble(i-1)/dble(text_n-1)
           text_bm(i)=0D0
@@ -120,12 +121,12 @@
           rr = dble(i-1)/dble(text_n-1)*text_r
           r  = text_r
           text_vr(i)=0D0
-          text_vf(i)=omega*rr-(kr**2/LOG(1+kr**2))*omega*rr/(1+(kr*rr/r)**2)
-          text_vz(i)=-omega*r*(kr/(LOG(1+kr**2)*(1+(kr*rr/r)**2))-1/kr)
+          text_vf(i)=omega*rr-(kr**2/dlog(1D0+kr**2))*omega*rr/(1D0+(kr*rr/r)**2)
+          text_vz(i)=-omega*r*(kr/(dlog(1D0+kr**2)*(1D0+(kr*rr/r)**2))-1D0/kr)
           text_lr(i)=0D0
-          text_lf(i)=(kr*rr/r)/SQRT(1+(kr*rr/r)**2)
-          text_lz(i)=1D0/SQRT(1+(kr*rr/r)**2)
-          text_w(i)=2D0*omega*(kr**2/LOG(1+kr**2))*(1+(kr*rr/r)**2)**(-1.5)
+          text_lf(i)=(kr*rr/r)/dsqrt(1D0+(kr*rr/r)**2)
+          text_lz(i)=1D0/dsqrt(1D0+(kr*rr/r)**2)
+          text_w(i)=2D0*omega*(kr**2/dlog(1D0+kr**2))*(1D0+(kr*rr/r)**2)**(-1.5D0)
         enddo
       end
 
@@ -145,7 +146,7 @@
         write (fd,102) '#  Number of points n = ', text_n
         write (fd,101) '#  Cell radius r = ', text_r,   ' cm'
         write (fd,101) '#  Mag.field   H = ', text_H,   ' G'
-        write (fd,101) '#          (nu_0 = ', text_H*20.0378/2/acos(0D0), ' kHz)'
+        write (fd,101) '#          (nu_0 = ', text_H*20.0378D0/2D0/acos(0D0), ' kHz)'
         write (fd,101) '#  lambda_D      = ', text_ld,  ' erg/cm3'
         write (fd,101) '#  Field par. a  = ', text_a,   ' erg/cm^3 1/G^2'
         write (fd,101) '#  lambda_G1     = ', text_lg1, ' erg/cm'
@@ -286,8 +287,8 @@
         integer i,n
         real*8 a(n),b(n),x(2*n-2)
         do i=2,n
-          x(i-1)       = -sin(b(i))*cos(a(i))/(1+cos(b(i)))
-          x(n-1 + i-1) =  sin(b(i))*sin(a(i))/(1+cos(b(i)))
+          x(i-1)       = -sin(b(i))*cos(a(i))/(1D0+cos(b(i)))
+          x(n-1 + i-1) =  sin(b(i))*sin(a(i))/(1D0+cos(b(i)))
         enddo
       end
 
@@ -299,16 +300,16 @@
         real*8 dau,dav,dbu,dbv,cb
         do i=2,n
           cb=cos(b(i))
-          if (1-cb.gt.1D-30) then
-            dau =  sin(b(i))*sin(a(i))/(1-cb)
-            dav =  sin(b(i))*cos(a(i))/(1-cb)
-            dbu = -sin(b(i))*cos(a(i))*sqrt((1+cb)/(1-cb))
-            dbv =  sin(b(i))*sin(a(i))*sqrt((1+cb)/(1-cb))
+          if (1D0-cb.gt.1D-30) then
+            dau =  sin(b(i))*sin(a(i))/(1D0-cb)
+            dav =  sin(b(i))*cos(a(i))/(1D0-cb)
+            dbu = -sin(b(i))*cos(a(i))*sqrt((1D0+cb)/(1D0-cb))
+            dbv =  sin(b(i))*sin(a(i))*sqrt((1D0+cb)/(1D0-cb))
           else
-            dau =  sin(a(i)) * 2/1D-30
-            dav =  cos(a(i)) * 2/1D-30
-            dbu = -2*cos(a(i))
-            dbv =  2*sin(a(i))
+            dau =  sin(a(i)) * 2D0/1D-30
+            dav =  cos(a(i)) * 2D0/1D-30
+            dbu = -2D0*cos(a(i))
+            dbv =  2D0*sin(a(i))
           endif
           ex(i-1)       = ea(i)*dau + eb(i)*dbu
           ex(n-1 + i-1) = ea(i)*dav + eb(i)*dbv
@@ -324,7 +325,7 @@
         do i=n,2,-1
           u = x(i-1)
           v = x(i-1+n-1)
-          b(i) = acos((1-u**2-v**2)/(1+u**2+v**2))
+          b(i) = acos((1D0-u**2-v**2)/(1D0+u**2+v**2))
           if (abs(b(i)).gt.1D-10) then
             a(i) = 4D0*atan(1D0)-atan2(v, u)
           else if (i.lt.n) then
@@ -405,7 +406,7 @@
           x(i) = x(i) - d
           der1=(e2-e1)/d
           der2=(ex2(i)+ex1(i))/2D0
-          if ( dabs( der1/der2 - 1 ) > e ) then
+          if ( dabs( der1/der2 - 1D0 ) > e ) then
             write (*,*) 'text1r_mfunc_selfcheck failed for derivative dE/dXi:'
             write (*,*) 'i: ', i, ' (e2-e1)/dx: ', der1, ' ex*dx: ', der2
           endif
@@ -453,7 +454,7 @@
         sp = (3D0 + sqrt(3D0))/6D0
         sm = (3D0 - sqrt(3D0))/6D0
         ! grid step
-        dx = 1D0/(n-1)
+        dx = 1D0/dble(n-1)
 
         do i=1,n
            eai(i)=0D0
@@ -463,8 +464,8 @@
 
         do i=1,n-1
           ! gaussian quadrature points
-          rp = (i-1+sp)*dx
-          rm = (i-1+sm)*dx
+          rp = (dble(i-1)+sp)*dx
+          rm = (dble(i-1)+sm)*dx
 
           ! bulk energy at the i point
           if (i.eq.1) then
@@ -484,17 +485,17 @@
                text_w(i+1), E2, E2a, E2b)
 
           ! interpolate bulk energy and derivatives to rp,rm points
-          ei = ei + rp*(sp*E2 + sm*E1)*0.5*dx
-          eai(i) = eai(i) + E1a*sm*dx*rp*0.5
-          ebi(i) = ebi(i) + E1b*sm*dx*rp*0.5
-          eai(i+1) = eai(i+1) + E2a*sp*dx*rp*0.5
-          ebi(i+1) = ebi(i+1) + E2b*sp*dx*rp*0.5
+          ei = ei + rp*(sp*E2 + sm*E1)*0.5D0*dx
+          eai(i) = eai(i) + E1a*sm*dx*rp*0.5D0
+          ebi(i) = ebi(i) + E1b*sm*dx*rp*0.5D0
+          eai(i+1) = eai(i+1) + E2a*sp*dx*rp*0.5D0
+          ebi(i+1) = ebi(i+1) + E2b*sp*dx*rp*0.5D0
 
-          ei = ei + rm*(sm*E2 + sp*E1)*0.5*dx
-          eai(i) = eai(i) + E1a*sp*dx*rm*0.5
-          ebi(i) = ebi(i) + E1b*sp*dx*rm*0.5
-          eai(i+1) = eai(i+1) + E2a*sm*dx*rm*0.5
-          ebi(i+1) = ebi(i+1) + E2b*sm*dx*rm*0.5
+          ei = ei + rm*(sm*E2 + sp*E1)*0.5D0*dx
+          eai(i) = eai(i) + E1a*sp*dx*rm*0.5D0
+          ebi(i) = ebi(i) + E1b*sp*dx*rm*0.5D0
+          eai(i+1) = eai(i+1) + E2a*sm*dx*rm*0.5D0
+          ebi(i+1) = ebi(i+1) + E2b*sm*dx*rm*0.5D0
 
           ! calculate gradient energy in rp, rm points
           ap = sp*a(i+1)+sm*a(i)
@@ -505,18 +506,18 @@
           db = (b(i+1)-b(i))/dx
 
           call text1r_egrad(rp, ap,bp,da,db, E0,Ea,Eb,Eda,Edb)
-          ei = ei + rp*E0*0.5*dx
-          eai(i) = eai(i) + (Ea*sm*dx - Eda)*rp*0.5
-          ebi(i) = ebi(i) + (Eb*sm*dx - Edb)*rp*0.5
-          eai(i+1) = eai(i+1) + (Ea*sp*dx + Eda)*rp*0.5
-          ebi(i+1) = ebi(i+1) + (Eb*sp*dx + Edb)*rp*0.5
+          ei = ei + rp*E0*0.5D0*dx
+          eai(i) = eai(i) + (Ea*sm*dx - Eda)*rp*0.5D0
+          ebi(i) = ebi(i) + (Eb*sm*dx - Edb)*rp*0.5D0
+          eai(i+1) = eai(i+1) + (Ea*sp*dx + Eda)*rp*0.5D0
+          ebi(i+1) = ebi(i+1) + (Eb*sp*dx + Edb)*rp*0.5D0
 
           call text1r_egrad(rm, am,bm,da,db, E0,Ea,Eb,Eda,Edb)
-          ei = ei + rm*E0*0.5*dx
-          eai(i) = eai(i) + (Ea*sp*dx - Eda)*rm*0.5
-          ebi(i) = ebi(i) + (Eb*sp*dx - Edb)*rm*0.5
-          eai(i+1) = eai(i+1) + (Ea*sm*dx + Eda)*rm*0.5
-          ebi(i+1) = ebi(i+1) + (Eb*sm*dx + Edb)*rm*0.5
+          ei = ei + rm*E0*0.5D0*dx
+          eai(i) = eai(i) + (Ea*sp*dx - Eda)*rm*0.5D0
+          ebi(i) = ebi(i) + (Eb*sp*dx - Edb)*rm*0.5D0
+          eai(i+1) = eai(i+1) + (Ea*sm*dx + Eda)*rm*0.5D0
+          ebi(i+1) = ebi(i+1) + (Eb*sm*dx + Edb)*rm*0.5D0
 
         enddo
         ! surface energy
@@ -544,7 +545,7 @@
           b(i) = b(i) - d
           der1=(e2-e1)/d
           der2=(eb2(i)+eb1(i))/2D0
-          if ( dabs( der1/der2 - 1 ) > e ) then
+          if ( dabs( der1/der2 - 1D0 ) > e ) then
             write (*,*) 'text1r_eint_selfcheck failed for derivative dE/dBi:'
             write (*,*) 'i: ', i, ' (e2-e1)/db: ', der1, ' ea1*db: ', der2
           endif
@@ -554,7 +555,7 @@
           a(i) = a(i) - d
           der1=(e2-e1)/d
           der2=(ea2(i)+ea1(i))/2D0
-          if ( dabs( der1/der2 - 1 ) > e ) then
+          if ( dabs( der1/der2 - 1D0 ) > e ) then
             write (*,*) 'text1r_eint_selfcheck failed for derivative dE/dAi:'
             write (*,*) 'i: ', i, ' (e2-e1)/da: ', der1, ' ea1: ', der2
           endif
@@ -593,8 +594,8 @@
         sin_a = sin(a)
         cos_b = cos(b)
         sin_b = sin(b)
-        cos2b = cos(2*b)
-        sin2b = sin(2*b)
+        cos2b = cos(2D0*b)
+        sin2b = sin(2D0*b)
 
         nr=-sin_b*cos_a
         nf=sin_b*sin_a
@@ -604,45 +605,45 @@
         s=SQRT(15D0)/4D0 !\sin\theta
 
         ! H*Rij = cos(t) H + (1-cos(t))(H n) n - sin(t)(H x n)
-        rzr=(1-c)*nz*nr-s*nf ! H*Rij/abs(H)
-        rzf=(1-c)*nz*nf+s*nr
-        rzz=c+(1-c)*nz**2
+        rzr=(1D0-c)*nz*nr-s*nf ! H*Rij/abs(H)
+        rzf=(1D0-c)*nz*nf+s*nr
+        rzz=c+(1D0-c)*nz**2
 
-        E = 0
-        Ea = 0
-        Eb = 0
+        E = 0D0
+        Ea = 0D0
+        Eb = 0D0
 
         ! magnetic free energy F_DH = -a * (n H)^2
         E = E + sin_b**2
         Eb = Eb + sin2b
 
         ! spin-orbit free energy
-        help = 15D0 * text_ld / text_a / text_h**2  * sin(bm/2)**2
+        help = 15D0 * text_ld / text_a / text_h**2  * sin(bm/2D0)**2
         E = E + help * sin_b**2
         Eb = Eb + help * sin2b
 
         ! flow free energy F_HV
         ! v_d = sqrt(2/5 a/lhv)
-        E = E - 2/5 / (vd**2) * (rzr*vr+rzf*vf+rzz*vz)**2
-        help = vr*(-(1-c)*cos2b*cos_a - s*cos_b*sin_a) &
-             + vf*( (1-c)*cos2b*sin_a - s*cos_b*cos_a) &
-             + vz*(-(1-c)*sin2b)
-        Eb = Eb - 4/5 / (vd**2) * help * (rzr*vr+rzf*vf+rzz*vz)
+        E = E - 2D0/5D0 / (vd**2) * (rzr*vr+rzf*vf+rzz*vz)**2
+        help = vr*(-(1D0-c)*cos2b*cos_a - s*cos_b*sin_a) &
+             + vf*( (1D0-c)*cos2b*sin_a - s*cos_b*cos_a) &
+             + vz*(-(1D0-c)*sin2b)
+        Eb = Eb - 4D0/5D0 / (vd**2) * help * (rzr*vr+rzf*vf+rzz*vz)
 
-        help = vr*((1-c)*sin_b*cos_b*sin_a - s*sin_b*cos_a) &
-             + vf*((1-c)*sin_b*cos_b*cos_a + s*sin_b*sin_a)
-        Ea = Ea - 4/5 / (vd**2) * help *(rzr*vr+rzf*vf+rzz*vz)
+        help = vr*((1D0-c)*sin_b*cos_b*sin_a - s*sin_b*cos_a) &
+             + vf*((1D0-c)*sin_b*cos_b*cos_a + s*sin_b*sin_a)
+        Ea = Ea - 4D0/5D0 / (vd**2) * help *(rzr*vr+rzf*vf+rzz*vz)
 
         ! vortex free energy F_LH
-        E = E + text_lo * w/5 * (rzr*lr+rzf*lf+rzz*lz)**2
+        E = E + text_lo * w/5D0 * (rzr*lr+rzf*lf+rzz*lz)**2
 
-        help = lr*(-(1-c)*cos2b*cos_a - s*cos_b*sin_a) &
-             + lf*( (1-c)*cos2b*sin_a - s*cos_b*cos_a) &
-             + lz*(-(1-c)*sin2b)
-        Eb = Eb + text_lo*w*2/5 * help * (rzr*lr+rzf*lf+rzz*lz)
+        help = lr*(-(1D0-c)*cos2b*cos_a - s*cos_b*sin_a) &
+             + lf*( (1D0-c)*cos2b*sin_a - s*cos_b*cos_a) &
+             + lz*(-(1D0-c)*sin2b)
+        Eb = Eb + text_lo*w*2D0/5D0 * help * (rzr*lr+rzf*lf+rzz*lz)
         help = lr*((1D0-c)*sin_b*cos_b*sin_a - s*sin_b*cos_a) &
              + lf*((1D0-c)*sin_b*cos_b*cos_a + s*sin_b*sin_a)
-        Ea = Ea + text_lo*w*2/5 * help * (rzr*lr+rzf*lf+rzz*lz)
+        Ea = Ea + text_lo*w*2D0/5D0 * help * (rzr*lr+rzf*lf+rzz*lz)
       end
 
 ! Self test for ebulk derivatives
@@ -658,14 +659,14 @@
         call text1r_ebulk(a+d,b, bm, vz,vr,vf, lz,lr,lf, w, E2,Ea2,Eb2)
         der1=(E2-E1)/d
         der2=(Ea2+Ea1)/2D0
-        if ( dabs( der1/der2 - 1 ) > e ) then
+        if ( dabs( der1/der2 - 1D0 ) > e ) then
           write(*,*) 'text1r_ebulk_selfcheck failed for dE/da:'
           write(*,*) ' a: ', a, ' b: ', b, ' (E2-E1)/da: ', der1, ' Ea: ', der2
         endif
         call text1r_ebulk(a,b+d, bm, vz,vr,vf, lz,lr,lf, w, E2,Ea2,Eb2)
         der1=(E2-E1)/d
         der2=(Eb2+Eb1)/2D0
-        if ( dabs( der1/der2 - 1 ) > e ) then
+        if ( dabs( der1/der2 - 1D0 ) > e ) then
           write(*,*) 'text1r_ebulk_selfcheck failed for dE/db:'
           write(*,*) ' a: ', a, ' b: ', b, ' (E2-E1)/db: ', der1, ' Eb: ', der2
         endif
@@ -696,33 +697,33 @@
         cos_b = cos(b)
         sin_b = sin(b)
 
-        E = 0
-        Ea = 0
-        Eb = 0
-        Eda = 0
-        Edb = 0
+        E = 0D0
+        Ea = 0D0
+        Eb = 0D0
+        Eda = 0D0
+        Edb = 0D0
 
-        con1 = 4*(4+de)*xir**2/13
+        con1 = 4D0*(4D0+de)*xir**2D0/13D0
 
         E = E + con1*(db**2 + (sin_b**2)*da**2 + (sin_b**2)/r**2) ! (\nabla n)^2 (?)
-        Eda = Eda + con1*2*da*sin_b**2
-        Edb = Edb + con1*2*db
-        Eb = Eb + con1 * 2*sin_b*cos_b*(da**2 + 1/r**2)
+        Eda = Eda + con1*2D0*da*sin_b**2
+        Edb = Edb + con1*2D0*db
+        Eb = Eb + con1 * 2D0*sin_b*cos_b*(da**2 + 1D0/r**2)
 
-        con2 = -(2+de)*xir**2/26
+        con2 = -(2D0+de)*xir**2/26D0
         help=(s5*sin_a-s3*cos_b*cos_a)*db + &
              (s5*cos_b*cos_a+s3*sin_a)*sin_b*da + &
              (s5*cos_b*sin_a-s3*cos_a)*sin_b/r  ! s3 \div n + s5 n \rot n (?)
         E = E + con2 * help**2
 
-        Eda = Eda + 2*con2*help * (s5*cos_b*cos_a + s3*sin_a)*sin_b
-        Edb = Edb + 2*con2*help * (s5*sin_a - s3*cos_b*cos_a)
+        Eda = Eda + 2D0*con2*help * (s5*cos_b*cos_a + s3*sin_a)*sin_b
+        Edb = Edb + 2D0*con2*help * (s5*sin_a - s3*cos_b*cos_a)
 
-        Ea = Ea + 2*con2*help* &
+        Ea = Ea + 2D0*con2*help* &
           ( (s5*cos_a + s3*cos_b*sin_a)*db &
           - (s5*cos_b*sin_a - s3*cos_a)*sin_b*da &
           + (s5*cos_b*cos_a + s3*sin_a)*sin_b/r)
-        Eb = Eb + 2*con2*help* &
+        Eb = Eb + 2D0*con2*help* &
           ( (s3*db - s5*sin_b*da)*sin_b*cos_a &
           + (s5*cos_b*cos_a + s3*sin_a)*cos_b*da &
           + (s5*cos_b*sin_a - s3*cos_a)*cos_b/r &
@@ -742,7 +743,7 @@
         call text1r_egrad(r, a+d,b,g0,g0,E2,Ea2,Eb2,Eda2,Edb2)
         der1=(E2-E1)/d
         der2=(Ea2+Ea1)/2D0
-        if ( dabs( der1/der2 - 1 ) > e ) then
+        if ( dabs( der1/der2 - 1D0 ) > e ) then
           write(*,*) 'text1r_egrad_selfcheck failed for dE/da:'
           write(*,*) ' a: ', a, ' b: ', b, ' (E2-E1)/da: ', der1, ' Ea: ', der2
         endif
@@ -750,7 +751,7 @@
         call text1r_egrad(r, a,b+d,g0,g0,E2,Ea2,Eb2,Eda2,Edb2)
         der1=(E2-E1)/d
         der2=(Eb2+Eb1)/2D0
-        if ( dabs( der1/der2 - 1 ) > e ) then
+        if ( dabs( der1/der2 - 1D0 ) > e ) then
           write(*,*) 'text1r_egrad_selfcheck failed for dE/db:'
           write(*,*) ' a: ', a, ' b: ', b, ' (E2-E1)/db: ', der1, ' Eb: ', der2
         endif
@@ -758,7 +759,7 @@
         call text1r_egrad(r, a,b,g0+d,g0,E2,Ea2,Eb2,Eda2,Edb2)
         der1=(E2-E1)/d
         der2=(Eda2+Eda1)/2D0
-        if ( dabs( der1/der2 - 1 ) > e ) then
+        if ( dabs( der1/der2 - 1D0 ) > e ) then
           write(*,*) 'text1r_egrad_selfcheck failed for dE/d(da):'
           write(*,*) ' a: ', a, ' b: ', b, ' (E2-E1)/d(da): ', der1, ' Eda: ', der2
         endif
@@ -766,7 +767,7 @@
         call text1r_egrad(r, a,b,g0,g0+d,E2,Ea2,Eb2,Eda2,Edb2)
         der1=(E2-E1)/d
         der2=(Edb2+Edb1)/2D0
-        if ( dabs( der1/der2 - 1 ) > e ) then
+        if ( dabs( der1/der2 - 1D0 ) > e ) then
           write(*,*) 'text1r_egrad_selfcheck failed for dE/d(db):'
           write(*,*) ' a: ', a, ' b: ', b, ' (E2-E1)/d(db): ', der1, ' Edb: ', der2
         endif
@@ -800,8 +801,8 @@
         sin_a = sin(a)
         cos_b = cos(b)
         sin_b = sin(b)
-        sin2b = sin(2*b)
-        cos2b = cos(2*b)
+        sin2b = sin(2D0*b)
+        cos2b = cos(2D0*b)
         nr=-sin_b*cos_a
         nf=sin_b*sin_a
         nz=cos_b
@@ -833,14 +834,14 @@
         call text1r_esurf(a+d,b,E2,Ea2,Eb2)
         der1=(E2-E1)/d
         der2=(Ea2+Ea1)/2D0
-        if ( dabs( der1/der2 - 1 ) > e ) then
+        if ( dabs( der1/der2 - 1D0 ) > e ) then
           write(*,*) 'text1r_esurf_selfcheck failed for dE/da:'
           write(*,*) ' a: ', a, ' b: ', b, ' (E2-E1)/da: ', der1, ' Ea: ', der2
         endif
         call text1r_esurf(a,b+d,E2,Ea2,Eb2)
         der1=(E2-E1)/d
         der2=(Eb2+Eb1)/2D0
-        if ( dabs( der1/der2 - 1 ) > e ) then
+        if ( dabs( der1/der2 - 1D0 ) > e ) then
           write(*,*) 'text1r_esurf_selfcheck failed for dE/db:'
           write(*,*) ' a: ', a, ' b: ', b, ' (E2-E1)/db: ', der1, ' Eb: ', der2
         endif
