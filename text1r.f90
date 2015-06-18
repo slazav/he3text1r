@@ -34,6 +34,9 @@
         text_h = const_2pi*nu0/he3_gyro
         text_n = n
         text_err = 0
+        text_bnd = 0
+        text_abnd = acos(0.5D0);       ! 60 deg
+        text_bbnd = asin(sqrt(0.8D0)); ! 63.4 deg
         text_energy = 0D0
         if (check_size()) return
 
@@ -45,7 +48,11 @@
           text_bn(i) = 2D0*acos(0D0)*dble(hh) + &
                        acos(-dble(zz)*1D0/sqrt(5D0)) * &
                        dble(i-1)/dble(text_n-1)
-          text_rr(i)=text_r*dble(i-1)/dble(text_n-1)
+          if (text_bnd.ne.0) then
+            text_rr(i)=text_r*dble(i-1)/dble(text_n)
+          else
+            text_rr(i)=text_r*dble(i-1)/dble(text_n-1)
+          endif
           text_bm(i)=0D0
           text_vr(i)=0D0
           text_vz(i)=0D0
@@ -67,7 +74,13 @@
 
         if (check_size()) return
         do i=1,text_n
-          rr = dble(i-1)/dble(text_n-1)*text_r
+
+          if (text_bnd.ne.0) then
+            rr = dble(i-1)/dble(text_n)*text_r
+          else
+            rr = dble(i-1)/dble(text_n-1)*text_r
+          endif
+
           ! flow velocity
           text_vr(i)=0D0
           text_vf(i)=0D0
@@ -95,7 +108,11 @@
 
         if (check_size()) return
         do i=1,text_n
-          rr = dble(i-1)/dble(text_n-1)*text_r
+          if (text_bnd.ne.0) then
+            rr = dble(i-1)/dble(text_n)*text_r
+          else
+            rr = dble(i-1)/dble(text_n-1)*text_r
+          endif
           ! flow velocity
           text_vr(i)=0D0
           text_vf(i)=(omega-omega_v)*rr
@@ -118,7 +135,11 @@
 
         if (check_size()) return
         do i=1,text_n
-          rr = dble(i-1)/dble(text_n-1)*text_r
+          if (text_bnd.ne.0) then
+            rr = dble(i-1)/dble(text_n)*text_r
+          else
+            rr = dble(i-1)/dble(text_n-1)*text_r
+          endif
           r  = text_r
           text_vr(i)=0D0
           text_vf(i)=omega*rr-(kr**2/dlog(1D0+kr**2))*omega*rr/(1D0+(kr*rr/r)**2)
@@ -197,6 +218,15 @@
         ! additional parameters (default values, do not change)
         integer MAXIT, MAXFUN
         real*8 ETA,STEPMX,ACCRCY,XTOL,MCHPR1
+
+        ! update text_rr (it can depend on text_bnd)
+        do i=1,text_n
+          if (text_bnd.ne.0) then
+            text_rr(i)=text_r*dble(i-1)/dble(text_n)
+          else
+            text_rr(i)=text_r*dble(i-1)/dble(text_n-1)
+          endif
+        enddo
 
         nn=2*text_n-2
 
@@ -520,11 +550,61 @@
           ebi(i+1) = ebi(i+1) + (Eb*sm*dx + Edb)*rm*0.5D0
 
         enddo
-        ! surface energy
-        call text1r_esurf(a(n),b(n),E0,Ea,Eb)
-        ei = ei + E0
-        eai(n) = eai(n) + Ea
-        ebi(n) = ebi(n) + Eb
+
+
+        !! strict boundary conditions: add one more point (n+1)
+        !! with fixed angles text_abnd, text_bbnd
+        if (text_bnd.ne.0) then
+          ! gaussian quadrature points
+          rp = (dble(n-1)+sp)*dx
+          rm = (dble(n-1)+sm)*dx
+
+          ! use already calculated values an n point
+          E1=E2
+          E1a=E2a
+          E1b=E2b
+
+          ! bulk energy at the n+1 point; use all parameters from the
+          ! n point
+          call text1r_ebulk(text_abnd, text_bbnd, text_bm(n), &
+               text_vz(n), text_vr(n), text_vf(n), &
+               text_lz(n), text_lr(n), text_lf(n), &
+               text_w(n), E2, E2a, E2b)
+
+          ! interpolate bulk energy and derivatives to rp,rm points
+          ei = ei + rp*(sp*E2 + sm*E1)*0.5D0*dx
+          eai(n) = eai(n) + E1a*sm*dx*rp*0.5D0
+          ebi(n) = ebi(n) + E1b*sm*dx*rp*0.5D0
+
+          ei = ei + rm*(sm*E2 + sp*E1)*0.5D0*dx
+          eai(n) = eai(n) + E1a*sp*dx*rm*0.5D0
+          ebi(n) = ebi(n) + E1b*sp*dx*rm*0.5D0
+
+          ! calculate gradient energy in rp, rm points
+          ap = sp*text_abnd+sm*a(n)
+          am = sm*text_abnd+sp*a(n)
+          bp = sp*text_bbnd+sm*b(n)
+          bm = sm*text_bbnd+sp*b(n)
+          da = (text_abnd-a(n))/dx
+          db = (text_bbnd-b(n))/dx
+
+          call text1r_egrad(rp, ap,bp,da,db, E0,Ea,Eb,Eda,Edb)
+          ei = ei + rp*E0*0.5D0*dx
+          eai(n) = eai(n) + (Ea*sm*dx - Eda)*rp*0.5D0
+          ebi(n) = ebi(n) + (Eb*sm*dx - Edb)*rp*0.5D0
+
+          call text1r_egrad(rm, am,bm,da,db, E0,Ea,Eb,Eda,Edb)
+          ei = ei + rm*E0*0.5D0*dx
+          eai(n) = eai(n) + (Ea*sp*dx - Eda)*rm*0.5D0
+          ebi(n) = ebi(n) + (Eb*sp*dx - Edb)*rm*0.5D0
+        else
+          ! surface energy
+          call text1r_esurf(a(n),b(n),E0,Ea,Eb)
+          ei = ei + E0
+          eai(n) = eai(n) + Ea
+          ebi(n) = ebi(n) + Eb
+        endif
+
       end
 
 
