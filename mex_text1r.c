@@ -65,7 +65,7 @@ get_field_i(const mxArray *mst, int nfld, int N, int *arr){
 mxArray *
 pars_c2mat(PARS_T *cst){
   int i;
-  const char *keys[256]; //max number of fields
+  const char *keys[256]; /* max number of fields */
   i=0;
 #define INT(name) keys[i]=#name; i++;
 #define DBL(name) keys[i]=#name; i++;
@@ -123,7 +123,7 @@ mexFunction(int nlhs, mxArray *plhs[],
   int i;
 
 #if FTYPE==1
-  // init function
+  /* init function */
   int j;
   double in[6];
   extern void FUNC(
@@ -143,14 +143,14 @@ mexFunction(int nlhs, mxArray *plhs[],
       mexErrMsgTxt("non-scalar argument");
     in[i] = *mxGetPr(prhs[i]);
   }
-  i = (int)in[4]; // double -> int
-  j = (int)in[5]; // double -> int
+  i = (int)in[4]; /* double -> int */
+  j = (int)in[5]; /* double -> int */
   FUNC(&in[0], &in[1], &in[2], &in[3], &i, &j);
   plhs[0] = pars_c2mat(&PARS);
 
 #elif FTYPE==2
 
-  // set_vortex_* functions
+  /* set_vortex_* functions */
   double in[2];
   extern void FUNC(double *v1, double *v2);
   if (nlhs != 1)
@@ -170,7 +170,7 @@ mexFunction(int nlhs, mxArray *plhs[],
 
 #elif FTYPE==3
 
-  // minimize function
+  /* minimize function */
   extern void FUNC(int *msglev);
   if (nlhs != 1)
     mexErrMsgTxt("output argument is needed");

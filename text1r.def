@@ -6,40 +6,40 @@
  */
 
 
-ARR(rr)  // r grid [cm]
-ARR(an)  // azimuthal angle of n vector [degrees]
-ARR(bn)  // polar angle of n vector [degrees]
+ARR(rr)  /* r grid [cm] */
+ARR(an)  /* azimuthal angle of n vector [degrees] */
+ARR(bn)  /* polar angle of n vector [degrees] */
 
-DBL(R)   // Cell radius [cm]
-DBL(H)   // Magnetic field [G]
+DBL(R)   /* Cell radius [cm] */
+DBL(H)   /* Magnetic field [G] */
 
-DBL(a)   // Textural dipole-field parameter a [erg/cm^3 G^-2]
-DBL(lg1) // Textural parameter lambda_g1 [erg/cm]
-DBL(lg2) // Textural parameter lambda_g2 [erg/cm]
-DBL(lhv) // Textural parameter lambda_HV [erg/cm3 1/G2 1/(cm/s)^2]
-DBL(lsg) // Textural parameter lambda_SG [???]
-DBL(ld)  // Textural parameter lambda_D [erg/cm^3]
-DBL(lo)  // Textural parameter lambda/omega [s/rad]
-DBL(d)   // Textural surface parameter d [erg/cm^2 G^-2]
+DBL(a)   /* Textural dipole-field parameter a [erg/cm^3 G^-2] */
+DBL(lg1) /* Textural parameter lambda_g1 [erg/cm] */
+DBL(lg2) /* Textural parameter lambda_g2 [erg/cm] */
+DBL(lhv) /* Textural parameter lambda_HV [erg/cm3 1/G2 1/(cm/s)^2] */
+DBL(lsg) /* Textural parameter lambda_SG [???] */
+DBL(ld)  /* Textural parameter lambda_D [erg/cm^3] */
+DBL(lo)  /* Textural parameter lambda/omega [s/rad] */
+DBL(d)   /* Textural surface parameter d [erg/cm^2 G^-2] */
 
-ARR(vr)  // velocity profile
+ARR(vr)  /* velocity profile */
 ARR(vz)
 ARR(vf)
 
-ARR(lr)  // vortex polarization
+ARR(lr)  /* vortex polarization */
 ARR(lz)
 ARR(lf)
-ARR(w)      // vortex dencity, ??
-ARR(bm)     // tilting angle of precessing magnetization
+ARR(w)      /* vortex dencity, ?? */
+ARR(bm)     /* tilting angle of precessing magnetization */
 
-DBL(energy) // final energy after minimization
-DBL(db0)    // d(bn)/dr at r=0 after minimization
-DBL(db1)    // d(bn)/dr at r=R after minimization
-DBL(bmax)   // bn at r=R after minimization
+DBL(energy) /* final energy after minimization */
+DBL(db0)    /* d(bn)/dr at r=0 after minimization */
+DBL(db1)    /* d(bn)/dr at r=R after minimization */
+DBL(bmax)   /* bn at r=R after minimization */
 
-DBL(abnd)   // an, strict boundary condition
-DBL(bbnd)   // bn, strict boundary condition
+DBL(abnd)   /* an, strict boundary condition */
+DBL(bbnd)   /* bn, strict boundary condition */
 
-INT(err)    // error code after minimization
-INT(n)      // number of points
-INT(bnd)    // use strict boundary conditions
+INT(err)    /* error code after minimization */
+INT(bnd)    /* use strict boundary conditions */
+INT(n)      /* number of points */
