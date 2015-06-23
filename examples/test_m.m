@@ -28,5 +28,10 @@ function test_m()
   figure; hold on;
   plot(dat.rr, 180/pi*dat.an, 'r-');
   plot(dat.rr, 180/pi*dat.bn, 'b-');
+
+  plot(dat.rr, 180/pi*dat.al, 'm-');
+  plot(dat.rr, 180/pi*dat.bl, 'c-');
   xlim([0, r]);
+  legend('\alpha_n', '\beta_n', '\alpha_l', '\beta_l',
+         'location', 'northwest')
 end

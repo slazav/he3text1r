@@ -249,11 +249,32 @@
         enddo
         write(*,*) "ERROR CODE = ", text_err, " after ", i, " iterations"
 10      call text1r_x2text(text_n, text_an, text_bn, x)
+
+!       derivatives
         text_db0 = text_bn(2)/text_rr(2)
         text_db1 = (text_bn(text_n)-text_bn(text_n-1))/ &
                    (text_rr(text_n)-text_rr(text_n-1))
         text_bmax = text_bn(text_n)
+
+!       the l vector
+        do i=1,text_n
+          call n2l(text_an(i), text_bn(i), text_al(i), text_bl(i))
+        enddo
       end
+
+!      calculate the l vector from n
+       subroutine n2l(an,bn,al,bl)
+         implicit none
+         real*8 an,bn,al,bl
+         real*8 nr,nf,nz,lr,lf,lz
+         nr=-sin(bn)*cos(an)
+         nf=sin(bn)*sin(an)
+         nz=cos(bn)
+         lr = 1.25D0 * nz*nr - sqrt(15D0/16D0) * nf
+         lz = -0.25D0 + 1.25D0 * nz**2
+         bl = acos(lz)
+         al = acos(-lr/sin(bl))
+       end
 
 !      subroutine text1r_minimize_btn()
 !        implicit none
