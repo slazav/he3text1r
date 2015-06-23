@@ -763,11 +763,8 @@
         include 'text1r.fh'
         real*8 r,a,b,da,db,E,Ea,Eb,Eda,Edb
         real*8 sin_a, sin_b, cos_a, cos_b
-        real*8 con1, con2, help
-        real*8 s3,s5,de,xir
-
-        de  = text_lg1/text_lg2 - 2D0
-        xir  = sqrt(65D0/8D0 * text_lg2/text_a)/ text_H / text_r
+        real*8 con1, con2, con3, help
+        real*8 s3,s5
 
         s3 = sqrt(3D0)
         s5 = sqrt(5D0)
@@ -783,14 +780,17 @@
         Eda = 0D0
         Edb = 0D0
 
-        con1 = 4D0*(4D0+de)*xir**2D0/13D0
+        con1 = 5D0*(text_lg2 + text_lg1/2D0) &
+                /text_a/text_H**2/text_r**2
 
         E = E + con1*(db**2 + (sin_b**2)*da**2 + (sin_b**2)/r**2) ! (\nabla n)^2 (?)
         Eda = Eda + con1*2D0*da*sin_b**2
         Edb = Edb + con1*2D0*db
         Eb = Eb + con1 * 2D0*sin_b*cos_b*(da**2 + 1D0/r**2)
 
-        con2 = -(2D0+de)*xir**2/26D0
+        con2 = - 5D0/16D0*text_lg1 &
+                 /text_a/text_H**2/text_r**2
+
         help=(s5*sin_a-s3*cos_b*cos_a)*db + &
              (s5*cos_b*cos_a+s3*sin_a)*sin_b*da + &
              (s5*cos_b*sin_a-s3*cos_a)*sin_b/r  ! s3 \div n + s5 n \rot n (?)
@@ -808,6 +808,14 @@
           + (s5*cos_b*cos_a + s3*sin_a)*cos_b*da &
           + (s5*cos_b*sin_a - s3*cos_a)*cos_b/r &
           - s5*sin_b*sin_a*sin_b/r)
+
+        con3 = 5D0*text_lg1 &
+               /text_a/text_H**2/text_r**2
+
+        E   = E   + con3 * cos_b*sin_b*db/r
+        Edb = Edb + con3 * cos_b*sin_b/r
+        Eb  = Eb  + con3 * (cos_b**2 - sin_b**2)*db/r
+
       end
 
 ! Self test for egrad derivatives
