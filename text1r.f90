@@ -257,9 +257,11 @@
         text_bmax = text_bn(text_n)
 
 !       the l vector
-        do i=1,text_n
+        do i=2,text_n
           call n2l(text_an(i), text_bn(i), text_al(i), text_bl(i))
         enddo
+        text_al(1)=text_al(2)
+        text_bl(1)=0D0
       end
 
 !      calculate the l vector from n
@@ -271,9 +273,10 @@
          nf=sin(bn)*sin(an)
          nz=cos(bn)
          lr = 1.25D0 * nz*nr - sqrt(15D0/16D0) * nf
+         lf = 1.25D0 * nz*nf + sqrt(15D0/16D0) * nr
          lz = -0.25D0 + 1.25D0 * nz**2
          bl = acos(lz)
-         al = acos(-lr/sin(bl))
+         al = atan2(lf,-nr)
        end
 
 !      subroutine text1r_minimize_btn()
