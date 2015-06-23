@@ -7,8 +7,10 @@
 
 
 ARR(rr)  /* r grid [cm] */
-ARR(an)  /* azimuthal angle of n vector [degrees] */
-ARR(bn)  /* polar angle of n vector [degrees] */
+ARR(an)  /* azimuthal angle of the n vector [rad] */
+ARR(bn)  /* polar angle of the n vector [rad] */
+ARR(al)  /* azimuthal angle of the l vector [rad] */
+ARR(bl)  /* polar angle of the l vector [rad] */
 
 DBL(R)   /* Cell radius [cm] */
 DBL(H)   /* Magnetic field [G] */
