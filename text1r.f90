@@ -35,6 +35,7 @@
         text_n = n
         text_err = 0
         text_bnd = 0
+        text_neg = 0
         text_abnd = acos(0.5D0);       ! 60 deg
         text_bbnd = asin(sqrt(0.8D0)); ! 63.4 deg
         text_energy = 0D0
@@ -793,10 +794,22 @@
         s3 = sqrt(3D0)
         s5 = sqrt(5D0)
 
-        cos_a = cos(a)
-        sin_a = sin(a)
-        cos_b = cos(b)
-        sin_b = sin(b)
+        ! "negative texture" with theta=-104deg;
+        ! in the gradient energy this is equivalent to n -> -n
+        ! or a -> 180+a, b -> -b
+        ! TODO - think about bulk and surface energies where theta is important
+
+        if (text_neg.eq.0) then
+          cos_a = cos(a)
+          sin_a = sin(a)
+          cos_b = cos(b)
+          sin_b = sin(b)
+        else
+          cos_a = -cos(a)
+          sin_a = -sin(a)
+          cos_b = cos(b)
+          sin_b = -sin(b)
+        endif
 
         E = 0D0
         Ea = 0D0
@@ -839,6 +852,11 @@
         E   = E   + con3 * cos_b*sin_b*db/r
         Edb = Edb + con3 * cos_b*sin_b/r
         Eb  = Eb  + con3 * (cos_b**2 - sin_b**2)*db/r
+
+        if (text_neg.eq.1) then
+           Eb = -Eb
+!           Edb = -Edb
+        endif
 
       end
 
