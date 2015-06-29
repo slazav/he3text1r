@@ -938,9 +938,15 @@
         nz=cos_b
 
         ! dar is d/a/r
-        E = E - 5D0*dar*(s5*nz*nr-s3*nf)**2/16D0
-        Eb = Eb + 5D0*dar*(s5*nz*nr-s3*nf)*(s5*cos2b*cos_a+s3*cos_b*sin_a)/8D0
-        Ea = Ea - 5D0*dar*(s5*nz*nr-s3*nf)*(s5*nz*nf + s3*nr)/8D0
+!        E = E - 5D0*dar*(s5*nz*nr-s3*nf)**2/16D0
+!        Eb = Eb + 5D0*dar*(s5*nz*nr-s3*nf)*(s5*cos2b*cos_a+s3*cos_b*sin_a)/8D0
+!        Ea = Ea - 5D0*dar*(s5*nz*nr-s3*nf)*(s5*nz*nf + s3*nr)/8D0
+
+        E = E - 5D0/16D0*dar*(s5*nz*nr+s3*nf)**2
+        Ea = Ea - 5D0/8D0*dar*(s5*nz*nr+s3*nf)* &
+                 sin_b*(s3*cos_a + s5*cos_b*sin_a)
+        Eb = Eb - 5D0/8D0*dar*(s5*nz*nr+s3*nf)* &
+           (-s5*cos_a*cos_b**2 + s3*cos_b*sin_a + s5*cos_a*sin_b**2)
 
         ! from bending free energy
         ! xir = xi_H = sqrt(65 lg2 /(8 a)) / H/R
