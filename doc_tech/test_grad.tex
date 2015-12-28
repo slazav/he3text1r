@@ -1,0 +1,103 @@
+\documentclass[a4paper]{article}
+
+\usepackage{amssymb}
+\usepackage{euscript}
+\usepackage{graphicx}
+\graphicspath{{pics/}}
+\usepackage{color}
+\usepackage{epsfig}
+\usepackage{fullpage}
+\usepackage{verbatim}
+
+\begin{document}
+
+\title{check gradient energy}
+\maketitle
+
+\def\sp{\sqrt{5}}
+\def\st{\sqrt{3}}
+
+\def\ct{\cos\vartheta}
+\def\st{\sin\vartheta}
+\def\lga{\lambda_{G1}}
+\def\lgb{\lambda_{G2}}
+
+Let's start with formulas [Thuneberg-2003]:
+$$
+F_\nabla = \lga \nabla_i R_{ai} \nabla_j R_{aj} + \lgb \nabla_i R_{aj} \nabla_i R_{aj}
+$$
+$$
+\nabla_i R_{ai} \nabla_j R_{aj} =
+(1-\ct)[2(\nabla\times n)^2
+       + (1-\ct)(\nabla\cdot n)^2
+       - (1-\ct)(n\cdot\nabla\times n)^2
+       - 2\st(\nabla\cdot n)(n\cdot\nabla\times n)]
+$$
+$$
+\nabla_i R_{aj} \nabla_i R_{aj} =
+4(1-\ct)(\nabla_i n_j)^2 =
+4(1-\ct)\{ (\nabla\times n)^2
+         + (\nabla\cdot n)^2
+         + \nabla\cdot[(n\cdot\nabla)n - n(\nabla\cdot n)] \}
+$$
+
+Substitute $\ct=-1/4$:
+\begin{eqnarray*}
+F_\nabla
+ &=&  5/4\lga[2(\nabla\times n)^2
+       + 5/4(\nabla\cdot n)^2
+       - 5/4(n\cdot\nabla\times n)^2
+       - \sqrt{15}/2(\nabla\cdot n)(n\cdot\nabla\times n)]\\
+ &+&  5\lgb\{ (\nabla\times n)^2
+                   + (\nabla\cdot n)^2
+                   + \nabla\cdot[(n\cdot\nabla)n - n(\nabla\cdot n)] \}\\
+\end{eqnarray*}
+
+\begin{eqnarray*}
+F_\nabla
+ &=& 5/2(\lga+2\lgb)(\nabla\times n)^2\\
+ &+& 5(5/16\lga + \lgb) (\nabla\cdot n)^2\\
+ &-& 25/16\lga (n\cdot\nabla\times n)^2\\
+ &-& 5/8\sqrt{15}\lga (\nabla\cdot n)(n\cdot\nabla\times n)\\
+ &+& 5\lgb\nabla\cdot[(n\cdot\nabla)n - n(\nabla\cdot n)]\\
+\end{eqnarray*}
+
+Cylindrical coordinales ($r,z,\phi$), only $r$ dependence, $\nabla = \nabla_r$:
+\begin{eqnarray*}
+(\nabla\times n) &=& -\nabla n_z \hat\phi + (n_\phi/r + \nabla n_\phi)\hat z\\
+(\nabla\times n)^2 &=& (\nabla n_z)^2 + (n_\phi/r + \nabla n_\phi)^2\\
+(n\cdot\nabla\times n) &=& -\nabla n_z n_\phi + (n_\phi/r + \nabla n_\phi)n_z\\
+(\nabla\cdot  n) &=& n_r/r + \nabla n_r\\
+%
+\nabla\cdot[(n\cdot\nabla)n] &=&
+  n_r(\nabla n_r) / r
++ (\nabla n_r)^2
++ n_r \nabla^2 n_r
+- 2n_\phi (\nabla n_\phi)/r\\
+%
+\nabla\cdot[n(\nabla\cdot n)] &=&
+n_r (\nabla^2 n_r)
++ n_r (\nabla n_r)^2
++ 3 n_r (\nabla n_r)/r\\
+%
+\nabla\cdot[(n\cdot\nabla)n - n(\nabla\cdot n)] &=&
+- 2 n_r (\nabla n_r)/r
+- 2 n_\phi (\nabla n_\phi)/r\\
+\end{eqnarray*}
+
+\begin{eqnarray*}
+F_\nabla
+ &=& 5/2(\lga+2\lgb)(\nabla\times n)^2\\
+ &+& 5(5/16\lga + \lgb) (\nabla\cdot n)^2\\
+ &-& 25/16\lga (n\cdot\nabla\times n)^2\\
+ &-& 5/8\sqrt{15}\lga (\nabla\cdot n)(n\cdot\nabla\times n)\\
+ &+& 5\lgb\nabla\cdot[(n\cdot\nabla)n - n(\nabla\cdot n)]\\
+\end{eqnarray*}
+
+
+
+\begin{eqnarray*}
+\end{eqnarray*}
+
+\end{document}
+
