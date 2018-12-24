@@ -38,13 +38,13 @@ text1r.o: text1r.f90 text1r.fh
 .PHONY: octave matlab matlab64
 octave: libtext1r.so libhe3.so
 	rm -f matlab/*.mex
-	octave -q --eval 'mex_text1r'
+	octave-cli -q --eval 'mex_text1r_oct'
 matlab: libtext1r.so libhe3.so
 	rm -f matlab/*.mexglx
-	matlab -nojvm -nosplash -r 'mex_text1r'
+	matlab -nojvm -nosplash -r 'mex_text1r_ml'
 matlab64: libtext1r.so libhe3.so
 	rm -f matlab/*.mexglx64
-	matlab64 -nojvm -nosplash -r 'mex_text1r'
+	matlab64 -nojvm -nosplash -r 'mex_text1r_ml'
 ####
 
 libhe3.so: $(HE3LIB_PATH)/libhe3.so
