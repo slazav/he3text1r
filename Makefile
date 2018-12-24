@@ -41,10 +41,10 @@ octave: libtext1r.so libhe3.so
 	octave-cli -q --eval 'mex_text1r_oct'
 matlab: libtext1r.so libhe3.so
 	rm -f matlab/*.mexglx
-	matlab -nojvm -nosplash -r 'mex_text1r_ml'
+	matlab -nojvm -nosplash -r 'mex_text1r_ml; exit'
 matlab64: libtext1r.so libhe3.so
 	rm -f matlab/*.mexglx64
-	matlab64 -nojvm -nosplash -r 'mex_text1r_ml'
+	matlab64 -nojvm -nosplash -r 'mex_text1r_ml; exit'
 ####
 
 libhe3.so: $(HE3LIB_PATH)/libhe3.so
