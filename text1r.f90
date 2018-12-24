@@ -35,6 +35,7 @@
         text_n = n
         text_err = 0
         text_bnd = 0
+        text_neg = 0
         text_abnd = acos(0.5D0);       ! 60 deg
         text_bbnd = asin(sqrt(0.8D0)); ! 63.4 deg
         text_energy = 0D0
@@ -793,10 +794,22 @@
         s3 = sqrt(3D0)
         s5 = sqrt(5D0)
 
-        cos_a = cos(a)
-        sin_a = sin(a)
-        cos_b = cos(b)
-        sin_b = sin(b)
+        ! "negative texture" with theta=-104deg;
+        ! in the gradient energy this is equivalent to n -> -n
+        ! or a -> 180+a, b -> -b
+        ! TODO - think about bulk and surface energies where theta is important
+
+        if (text_neg.eq.0) then
+          cos_a = cos(a)
+          sin_a = sin(a)
+          cos_b = cos(b)
+          sin_b = sin(b)
+        else
+          cos_a = -cos(a)
+          sin_a = -sin(a)
+          cos_b = cos(b)
+          sin_b = -sin(b)
+        endif
 
         E = 0D0
         Ea = 0D0
@@ -839,6 +852,11 @@
         E   = E   + con3 * cos_b*sin_b*db/r
         Edb = Edb + con3 * cos_b*sin_b/r
         Eb  = Eb  + con3 * (cos_b**2 - sin_b**2)*db/r
+
+        if (text_neg.eq.1) then
+           Eb = -Eb
+!           Edb = -Edb
+        endif
 
       end
 
@@ -920,9 +938,15 @@
         nz=cos_b
 
         ! dar is d/a/r
-        E = E - 5D0*dar*(s5*nz*nr-s3*nf)**2/16D0
-        Eb = Eb + 5D0*dar*(s5*nz*nr-s3*nf)*(s5*cos2b*cos_a+s3*cos_b*sin_a)/8D0
-        Ea = Ea - 5D0*dar*(s5*nz*nr-s3*nf)*(s5*nz*nf + s3*nr)/8D0
+!        E = E - 5D0*dar*(s5*nz*nr-s3*nf)**2/16D0
+!        Eb = Eb + 5D0*dar*(s5*nz*nr-s3*nf)*(s5*cos2b*cos_a+s3*cos_b*sin_a)/8D0
+!        Ea = Ea - 5D0*dar*(s5*nz*nr-s3*nf)*(s5*nz*nf + s3*nr)/8D0
+
+        E = E - 5D0/16D0*dar*(s5*nz*nr+s3*nf)**2
+        Ea = Ea - 5D0/8D0*dar*(s5*nz*nr+s3*nf)* &
+                 sin_b*(s3*cos_a + s5*cos_b*sin_a)
+        Eb = Eb - 5D0/8D0*dar*(s5*nz*nr+s3*nf)* &
+           (-s5*cos_a*cos_b**2 + s3*cos_b*sin_a + s5*cos_a*sin_b**2)
 
         ! from bending free energy
         ! xir = xi_H = sqrt(65 lg2 /(8 a)) / H/R
@@ -932,6 +956,11 @@
         ! lsg ~ 3
         E = E - 2D0*text_lsg*xir**2*sin_b**2/13D0
         Eb = Eb - 2D0*text_lsg*xir**2*sin2b/13D0
+
+        ! b2,b4
+        E = E - 2D0*text_b2*xir**2*sin_b**2/13D0
+        Eb = Eb - 2D0*text_lsg*xir**2*sin2b/13D0
+
       end
 
 ! Self test for esurf derivatives

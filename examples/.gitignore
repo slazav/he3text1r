@@ -2,4 +2,5 @@
 test_c
 test_f77
 test_f90
+octave_core
 *.dat
