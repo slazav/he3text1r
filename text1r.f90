@@ -958,8 +958,7 @@
         Eb = Eb - 2D0*text_lsg*xir**2*sin2b/13D0
 
         ! b2,b4
-        E = E - 2D0*text_b2*xir**2*sin_b**2/13D0
-        Eb = Eb - 2D0*text_lsg*xir**2*sin2b/13D0
+!       TODO
 
       end
 
