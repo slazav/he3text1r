@@ -36,7 +36,7 @@
         text_err = 0
         text_bnd = 0
         text_neg = 0
-        text_abnd = acos(0.5D0);       ! 60 deg
+        text_abnd = acos(-0.5D0);      ! -60 deg
         text_bbnd = asin(sqrt(0.8D0)); ! 63.4 deg
         text_energy = 0D0
         if (check_size()) return
@@ -45,7 +45,7 @@
         hh = itype/2
         zz = (itype - hh*2)*2-1 ! parity of itype -1 or 1
         do i=1,text_n
-          text_an(i) = -dble(zz)*acos(0.5D0)
+          text_an(i) = -dble(zz)*text_abnd
           text_bn(i) = 2D0*acos(0D0)*dble(hh) + &
                        acos(-dble(zz)*1D0/sqrt(5D0)) * &
                        dble(i-1)/dble(text_n-1)
