@@ -4,11 +4,11 @@ FFLAGS= -Werror -Wconversion\
   -Wline-truncation -Wsurprising -Wno-tabs -Wunderflow\
   -Wno-unused-parameter -fPIC -fno-range-check -O
 #  -fcheck=all
-
 FC=gfortran
 
 HE3LIB_PATH = ../he3lib
 
+CFLAGS += -Wall
 FFLAGS += -I$(HE3LIB_PATH)
 LDFLAGS = -L$(HE3LIB_PATH)
 LDLIBS  = -lhe3

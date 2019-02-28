@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <string.h>
 
+int
 main(){
   double ttc = 0.4;     // Temperature, T/Tc
   double p   = 15;      // Pressure, bar
@@ -10,9 +11,9 @@ main(){
   int itype  = 0;       // Initial conditions: 0 - normal, 1 - with 90deg peak...
   int n      = 100;     // Number of points
   int msglev = -3;      // Message level: -3 silent ...
-  double omega   = 1;   // Rotation velocity, rad/s
-  double omega_v = 0.2; // Rotation velocity of vortex cluster, rad/s
-  double kr      = 1;   // Parameter for a twisted vortex profile
+//  double omega   = 1;   // Rotation velocity, rad/s
+//  double omega_v = 0.2; // Rotation velocity of vortex cluster, rad/s
+//  double kr      = 1;   // Parameter for a twisted vortex profile
   char *fname = "result.dat"; // file for output
 
   // Initialize texture calculation:
@@ -29,4 +30,5 @@ main(){
 
   // Print results to file:
   text1r_print_(fname, strlen(fname));
+  return 0;
 }
