@@ -72,6 +72,8 @@ Surface energy:
 \begin{eqnarray*}
 F_{SH} &=& -d
   \int_S [{\bf H} \cdot R \cdot {\bf s} ]^2\ d^2r\\
+F_{SD} &=& -b
+  \int_S [({\bf s}\cdot{\bf n})^2 - 5/18 ({\bf s}\cdot{\bf n})^4]\ d^2r\\
 F_{SG} &=& (2\lambda_{G2} + \lambda_{SG})
   \int_S s_j R_{\alpha j}
     \frac{\partial R_{\alpha i}}{\partial r_i}\ d^2r\\
@@ -80,6 +82,8 @@ F_{SG} &=& (2\lambda_{G2} + \lambda_{SG})
 {\bf Note:}\\
 - $\lambda/\Omega$ is not set automatically because it is not known
   (only counterflow part is known which is impotant at high temperatures).\\
+- $b$ is set to 0 by default
+- $d$ is used in GL model by default
 - Dipole energy is assumed to be constant, $\theta=\cos^{-1}(-1/4)$.\\
 - Maximal number of points is hardcoded into the library. You can
   increase it by changing MAXN parameter in {\tt make\_inc} script and
@@ -102,13 +106,14 @@ R     -- Cell radius [cm]
 H     -- Magnetic field [G]
 
 a     -- Textural dipole-field parameter a [erg/(cm3 G2)]
+b     -- Textural dipole surface parameter b [erg/cm^2]
+d     -- Textural dipole-field surface parameter d [erg/(cm2 G2)]
 lg1   -- Textural parameter lambda_g1 [erg/cm]
 lg2   -- Textural parameter lambda_g2 [erg/cm]
 lhv   -- Textural parameter lambda_HV [erg/(cm3 G2) 1/(cm/s)2]
-lsg   -- Textural parameter lambda_SG [???]
+lsg   -- Textural parameter lambda_SG, without (a) part [?]
 ld    -- Textural parameter lambda_D [erg/cm3]
 lo    -- Textural parameter lambda/omega [s/rad]
-d     -- Textural surface parameter d [erg/(cm2 G2)]
 
 vr(), vz(), vf()  -- velocity profile
 lr(), lz(), lf()  -- vortex polarization

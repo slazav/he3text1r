@@ -23,13 +23,14 @@
         include 'he3.f90h'
 
         text_a = he3_text_a(ttc,p)
+        text_b = 0
+        text_d = he3_text_d(ttc,p)
         text_lg1 = he3_grad_lg1(ttc,p)
         text_lg2 = he3_grad_lg2(ttc,p)
         text_lhv = he3_text_lhv(ttc,p)
         text_lsg = 3D0
         text_ld  = he3_ld(ttc,p)
         text_lo  = 0D0
-        text_d = he3_text_d(ttc,p)
         text_r = r
         text_h = const_2pi*nu0/he3_gyro
         text_n = n
@@ -915,9 +916,10 @@
         real*8 nr,nf,nz
         real*8 sin_a, sin_b, cos_a, cos_b, sin2b,cos2b
 
-        real*8 s3,s5,de, xir,dar
+        real*8 s3,s5,de, xir,dar,bar
 
         dar = text_d / (text_a*text_r)
+        bar = text_b / (text_a*text_H**2*text_r)
         de  = text_lg1/text_lg2 - 2D0
         xir = sqrt(65D0/8D0 * text_lg2/text_a)/ text_H / text_r
 
@@ -957,8 +959,10 @@
         E = E - 2D0*text_lsg*xir**2*sin_b**2/13D0
         Eb = Eb - 2D0*text_lsg*xir**2*sin2b/13D0
 
-        ! b2,b4
-!       TODO
+        ! bar = b/a/r
+        E  = E - bar* (nr**2 - 5D0/18D0*nr**4)
+        Ea = Ea - bar* (2D0*nr - 10D0/9D0*nr**3)*sin_a*sin_b
+        Eb = Eb + bar* (2D0*nr - 10D0/9D0*nr**3)*cos_a*cos_b
 
       end
 
