@@ -45,5 +45,4 @@ DBL(bbnd)   /* bn, strict boundary condition */
 
 INT(err)    /* error code after minimization */
 INT(bnd)    /* use strict boundary conditions */
-INT(neg)    /* "negative texture" with theta=-104 */
 INT(n)      /* number of points */

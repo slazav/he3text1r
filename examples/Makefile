@@ -1,5 +1,6 @@
 all: test_c test_f77 test_f90
 
+CFLAGS=-Wall
 LIBS= ../libtext1r.a ../../he3lib/libhe3.a ../tn/tn.a
 FC=gfortran
 
