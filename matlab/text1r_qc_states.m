@@ -1,45 +1,52 @@
-% Calculate all magnon states in the texture using quasiclassical approach
+% Calculate all magnon states in the texture using quasiclassical approach.
+%
+% Equation to solve:
+%    n = 1/pi int k(r) dr - 1/2
+%    k = [ w(w-wL) - 1/2 wB^2 \sin^2\beta_n ] / [c_perp^2 - (c_par^2-c_perp^2) l_r]
 %
 % dat - Texture parameter structure. Do not forget to calculate texture before.
 % cper, cpar - Spin-wave velocities (usually corresponds to gradient energy parameters lg1,lg2 in dat).
 % f0 - Larmor field in cell center [Hz] / frequency (usually corresponds to dat.H).
 % f2r  - d2(fL)/dr^2 across the cell (negative for usual trap) [Hz/cm^2].
 % nu_b - Leggett frequency [Hz].
-% mode - 0: constant field (default), 1: constant freq, 2: constant freq, recalculate texture.
+% mode - -1: simple mode: c=cper, beta_n = beta_n'*r
+%         0: constant field (default),
+%         1: constant freq,
+%         2: constant freq, recalculate texture.
+% NN   - interpolate texture to different grid size
 % Nmax - Max number of states to return (default 1000).
 % Nex  - Max number of non-local states to return (default 0).
 
-function df = text1r_qc_states_hconst(dat, cper, cpar, f0, f2r, nu_b, mode, Nmax, Nex)
+function df = text1r_qc_states(dat, cper, cpar, f0, f2r, nu_b, mode, NN, Nmax, Nex)
   format long;
   if (nargin < 7) mode = 0; end
   if (nargin < 8) Nmax = 1000; end
   if (nargin < 9) Nex  = 0; end
 
-  % find lx,ly,lz
-  nz = cos(dat.bn);
-  nx = sin(dat.bn).*cos(dat.an);
-  ny = sin(dat.bn).*sin(dat.an);
+  rr = linspace(dat.rr(1),dat.rr(end), NN)';
+  an = interp1(dat.rr, dat.an, rr);
+  bn = interp1(dat.rr, dat.bn, rr);
+  dr=(rr(end)-rr(1))/(length(rr)-1);
 
-  ct=-1/4; st=sqrt(15)/4;
-  lx=(1-ct)*nz.*nx - st*ny;
-  ly=(1-ct)*nz.*ny + st*nx;
-  lz= ct + (1-ct)*nz.^2;
-
+  % texture-dependent values:
   % velocity of transverse spin waves propagating
-  % along cell radius
-  ceff=f_ceff(dat, cpar, cper);
-
-  % dipolar potential, Hz^2
-  uD = f_uD(dat, nu_b);
+  % along cell radius, dipolar potential
+  if mode ~= -1
+    ceff=f_ceff(an, bn, cpar, cper);
+    uD = 0.5 * (2*pi*nu_b)^2 * sin(bn).^2;
+  else
+    ceff=cper;
+    uD = 0.5 * (2*pi*nu_b)^2 * (dat.db0*rr).^2;
+  end
 
   % For mode=0 f0 is larmor frequency in the center
   % frequency shifts are calculated from this level
   % For mode=1,2 f0 is a frequency.
   w0 = 2*pi*f0;
-  wr = 2*pi*f2r*dat.rr.^2;
+  wr = 2*pi*f2r*rr.^2;
   H0 = dat.H; % for mode 2
 
-  for N=0:Nmax
+  for N=0:Nmax-1
     % x - frequency from larmor
     if mode == 0
       % constant field mode
@@ -48,7 +55,7 @@ function df = text1r_qc_states_hconst(dat, cper, cpar, f0, f2r, nu_b, mode, Nmax
       % constant frequency mode
       k2func = @(x) (w0*(x-wr)-uD)./ceff.^2;
     end
-    zfunc1 = @(x) kint(N, dat.rr, k2func(x));
+    zfunc1 = @(x) kint(N, rr, k2func(x));
 
     if N>0 dwp = dw(N); else dwp = 0; end
     dw(N+1) = fzero(zfunc1, dwp);
@@ -57,9 +64,12 @@ function df = text1r_qc_states_hconst(dat, cper, cpar, f0, f2r, nu_b, mode, Nmax
     if mode == 2
        dat.H = H0 - dw(N+1)/he3_gyro;
        dat = text1r_minimize(dat);
+       an = interp1(dat.rr, dat.an, rr);
+       bn = interp1(dat.rr, dat.bn, rr);
+       dr=(rr(end)-rr(1))/(length(rr)-1);
        % update uD and ceff:
-       ceff=f_ceff(dat, cpar, cper);
-       uD = f_uD(dat, nu_b);
+       ceff=f_ceff(an,bn, cpar, cper);
+       uD = 0.5 * (2*pi*nu_b)^2 * sin(bn).^2;
        dw(N+1) = fzero(zfunc1, dw(N+1));
     end
 
@@ -74,20 +84,13 @@ function df = text1r_qc_states_hconst(dat, cper, cpar, f0, f2r, nu_b, mode, Nmax
   df = dw/2/pi;
 end
 
-% dipolar potential
-function uD = f_uD(dat, nu_b)
-  wB = 2*pi*nu_b;
-  uD = 1/2 * wB^2 * sin(dat.bn).^2;
-end
-
-
 % velocity of transverse spin waves propagating
 % along cell radius
-function ceff = f_ceff(dat, cpar, cper)
+function ceff = f_ceff(an, bn, cpar, cper)
   % find lx,ly,lz
-  nz = cos(dat.bn);
-  nx = sin(dat.bn).*cos(dat.an);
-  ny = sin(dat.bn).*sin(dat.an);
+  nz = cos(bn);
+  nx = sin(bn).*cos(an);
+  ny = sin(bn).*sin(an);
 
   ct=-1/4; st=sqrt(15)/4;
   lx=(1-ct)*nz.*nx - st*ny;
