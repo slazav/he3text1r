@@ -2,6 +2,8 @@
 % original of this function (with r-z 2d version, tests, integrals)
 % can be fount in he3misc/magnons_bphase
 %
+% Only constant frequency calculation.
+%
 % Equation to solve:
 %   %    n = 1/pi int k(r) dr - 1/2
 %  [c_perp^2 - (c_par^2-c_perp^2) l_r] \nabla_r^2  = w(w-wL) - 1/2 wB^2 \sin^2\beta_n
@@ -12,8 +14,10 @@
 % f0 - Larmor field in cell center [Hz] / frequency (usually corresponds to dat.H).
 % f2r  - d2(fL)/dr^2 across the cell (negative for usual trap) [Hz/cm^2].
 % nu_b - Leggett frequency [Hz].
-% mode - -1: simple mode: c=cper, beta_n = beta_n'*r
-%         0: constant freq,
+% mode - -2: simple mode: c=cper, beta_n = beta_n'*r, f'(r)=0
+%        -1: simple mode: c=cper, beta_n = beta_n'*r, f(r)=0
+%         1: f(r)=0
+%         2: f'(r)=0
 % NN   - interpolate texture to different grid size
 % Nmax - Max number of states to return (default 1000).
 % Nex  - Max number of non-local states to return (default 0).
@@ -34,20 +38,29 @@ function [df, rr, psi] = text1r_wv_states(dat, cper, cpar, f0, f2r, fB, mode, NN
   % texture-dependent values:
   % velocity of transverse spin waves propagating
   % along cell radius, dipolar potential
-  if mode == -1
+
+  simple = mode<0;
+  ZBC = abs(mode)==1;
+
+  if simple
     ceff=cper*ones(size(rr));
     uD = 0.5*wB^2/w0*(dat.db0*rr).^2 + w2r*rr.^2;
   else
     ceff=f_ceff(an,bn, cpar, cper);
     uD = 0.5*wB^2/w0*sin(bn).^2 + w2r*rr.^2;
   end
-  %% for f=0 BC ar R: last point has F=0 and is not in the calculation
-  %ceff = ceff(1:end-1);
-  %uD   = uD(1:end-1);
-  % N=length(rr)-1;
+  % f=0 BC on 
+  % last point has f=0 and is not in the calculation
+  if ZBC
+    ceff = ceff(1:end-1);
+    uD   = uD(1:end-1);
+    N=length(rr)-1;
+  % f'=0 BC on 
+  else
+    N=length(rr);
+  end
 
   % we are building matrix for rr(1:N)
-  N=length(rr);
   Drr = sparse(N,N);
   uDr = sparse(N,N); % 1/r d/dr
   U   = sparse(N,N);
@@ -92,18 +105,20 @@ function [df, rr, psi] = text1r_wv_states(dat, cper, cpar, f0, f2r, fB, mode, NN
       if ir==1
         Drr(ir,ir+1) = 2/dr^2; % Neumann boundary condition
       end
-      if ir==N
+      if ir==N && ~ZBC
         Drr(ir,ir-1) = 2/dr^2; % Neumann boundary condition
       end
 
       % uDr
-      if ir>1
+      if ir>1 && ir<N
         uDr(ir,ir-1) = -1/(2*dr*rr(ir));
         if ir<N(1); uDr(ir,ir+1) =  1/(2*dr*rr(ir)); end
-      elseif ir==1
+      end
+      if ir==1
         uDr(ir,ir) = -2/(dr^2);
         uDr(ir,ir+1) = 2/(dr^2);
-      else
+      end
+      if ir==N && ~ZBC
         uDr(ir,ir) = -2/(dr^2);
         uDr(ir,ir-1) = 2/(dr^2);
       end
@@ -123,19 +138,24 @@ function [df, rr, psi] = text1r_wv_states(dat, cper, cpar, f0, f2r, fB, mode, NN
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % sort states, add r=R point where F=0
   [df,ii] = sort(df);
-  % for f=0 BC at R
-  %  psi = [ real(v(:,ii)); zeros(size(v(1,:))) ];
-  psi = real(v(:,ii));
+  if ZBC
+    psi = [ real(v(:,ii)); zeros(size(v(1,:))) ];
+  else
+    psi = real(v(:,ii));
+  end
 
   % wave is localized if derivative at r=R is large
   for i = 1:length(df)
     if psi(1,i) < 0; psi(:,i) = - psi(:,i); end
-    loc(i) = abs( psi(end,i)/psi(1,i) );
-    % f=0 BC: loc(i) = abs( dr*psi(end-1,i)/psi(1,i) );
+    if ZBC
+      loc(i) = abs( psi(end-1,i)/psi(1,i) );
+    else
+      loc(i) = abs( psi(end,i)/psi(1,i) );
+    end
   end
   loc = loc > 0.01;
 
-  cut = min([find(loc, 1) + Nex, Nmax, length(loc)]);
+  cut = min([find(loc, 1) + Nex, Nmax, N]);
   df  = df(1:cut);
   psi = psi(:,1:cut);
 
