@@ -1,3 +1,5 @@
+% old script! use text1r_wv_states/text1r_qc_states instead
+
 function [psi en] = text1r_wave(dat, states)
   % Calculate magnon wavefunction in a textural potential (no normalization)
   % for the potential sin(dat.bn).^2

@@ -1,3 +1,5 @@
+% old script! use text1r_wv_states/text1r_qc_states instead of text1r_wave
+
 function [dat e0] = text1r_qball_e(dat, E)
   % calculate self-consistent texture and precessing magnetization
   % distibution for a given integral of (1-\cos\beta)

@@ -1,3 +1,5 @@
+% old script! use text1r_wv_states/text1r_qc_states instead of text1r_wave
+
 function dat = text1r_qball_bm0(dat, bm0)
   % Calculate self-consistent texture and precessing magnetization
   % distibution for a given beta_m(r=0) value (in radians).
