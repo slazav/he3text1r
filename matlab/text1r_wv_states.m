@@ -6,13 +6,13 @@
 %
 % Equation to solve:
 %   %    n = 1/pi int k(r) dr - 1/2
-%  [c_perp^2 - (c_par^2-c_perp^2) l_r] \nabla_r^2  = w(w-wL) - 1/2 wB^2 \sin^2\beta_n
-%  c_eff^2/w \nabla_r^2 + 1/2 wB^2/w \sin^2\beta_n  = (w-wL)
+%  -[c_perp^2 - (c_par^2-c_perp^2) l_r] \nabla_r^2  = w(w-wL) - 1/2 wB^2 \sin^2\beta_n
+%  -c_eff^2/w \nabla_r^2 + 1/2 wB^2/w \sin^2\beta_n  = (w-wL)
 %
 % dat - Texture parameter structure. Do not forget to calculate texture before.
 % cper, cpar - Spin-wave velocities (usually corresponds to gradient energy parameters lg1,lg2 in dat).
-% f0 - Larmor field in cell center [Hz] / frequency (usually corresponds to dat.H).
-% f2r  - d2(fL)/dr^2 across the cell (negative for usual trap) [Hz/cm^2].
+% f0 - frequency (usually corresponds to dat.H).
+% fprof - non-uniform field profile (in freq units, 0 in the center, negative for a usual traps).
 % nu_b - Leggett frequency [Hz].
 % mode - -2: simple mode: c=cper, beta_n = beta_n'*r, f'(r)=0
 %        -1: simple mode: c=cper, beta_n = beta_n'*r, f(r)=0
@@ -24,16 +24,19 @@
 
 
 % simplify wave_calc.m for 1D radial calculation
-function [df, rr, psi] = text1r_wv_states(dat, cper, cpar, f0, f2r, fB, mode, NN, Nmax, Nex)
+function [df, rr, psi] = text1r_wv_states(dat, cper, cpar, f0, fprof, fB, mode, NN, Nmax, Nex)
+
+  wB = 2*pi*fB;
+  w0 = 2*pi*f0;
+  wprof = 2*pi*fprof;
 
   rr = linspace(dat.rr(1),dat.rr(end), NN);
   an = interp1(dat.rr, dat.an, rr);
   bn = interp1(dat.rr, dat.bn, rr);
+  if length(wprof)>1
+    wprof = interp1(dat.rr, wprof, rr);
+  end
   dr=(rr(end)-rr(1))/(length(rr)-1);
-
-  wB = 2*pi*fB;
-  w0 = 2*pi*f0;
-  w2r = 2*pi*f2r;
 
   % texture-dependent values:
   % velocity of transverse spin waves propagating
@@ -44,10 +47,10 @@ function [df, rr, psi] = text1r_wv_states(dat, cper, cpar, f0, f2r, fB, mode, NN
 
   if simple
     ceff=cper*ones(size(rr));
-    uD = 0.5*wB^2/w0*(dat.db0*rr).^2 + w2r*rr.^2;
+    uD = 0.5*wB^2/w0*(dat.db0*rr).^2 + wprof;
   else
     ceff=f_ceff(an,bn, cpar, cper);
-    uD = 0.5*wB^2/w0*sin(bn).^2 + w2r*rr.^2;
+    uD = 0.5*wB^2/w0*sin(bn).^2 + wprof;
   end
   % f=0 BC on 
   % last point has f=0 and is not in the calculation
@@ -81,22 +84,14 @@ function [df, rr, psi] = text1r_wv_states(dat, cper, cpar, f0, f2r, fB, mode, NN
   %   Drr: [d2f/dr2] = 2a = (fm+fp-2f0)/dr^2
   %
   % r=0:
-  %   fp=fm
-  %
   %   f = f0 + ar^2
-  %   fp = f0 + a dr^2
+  %   fp = fm = f0 + a dr^2
   %   [1/r df/dr] = [d2f/dr2] = 2a = 2(fp-f0)/dr^2
-  % r=R:
-  %   fp=fm
-  %
-  %   f = f0 + ar^2
-  %   fm = f0 + a dr^2
+  % r=R, f'=0:
+  %   fp = fm = f0 + a dr^2
   %   [1/r df/dr] = [d2f/dr2] = 2a = 2(fm-f0)/dr^2
 
-  for ir=1:N % don't use Nr below!
-      x0  = ir;
-      if ir>1 xrm = ir-1; end
-      if ir<N xrp = ir+1; end
+  for ir=1:N % don't use NN below!
 
       % Drr
       Drr(ir,ir) = -2/dr^2;
@@ -112,7 +107,7 @@ function [df, rr, psi] = text1r_wv_states(dat, cper, cpar, f0, f2r, fB, mode, NN
       % uDr
       if ir>1 && ir<N
         uDr(ir,ir-1) = -1/(2*dr*rr(ir));
-        if ir<N(1); uDr(ir,ir+1) =  1/(2*dr*rr(ir)); end
+        uDr(ir,ir+1) =  1/(2*dr*rr(ir));
       end
       if ir==1
         uDr(ir,ir) = -2/(dr^2);
@@ -126,9 +121,8 @@ function [df, rr, psi] = text1r_wv_states(dat, cper, cpar, f0, f2r, fB, mode, NN
       % U
       U(ir,ir)  = uD(ir);
   end
-
   % non-modified equation
-  A = - diag(ceff.^2)*(Drr + uDr)/(2*pi*f0) + U;
+  A = - diag(ceff.^2)*(Drr + uDr)/w0 + U;
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % solve eigenvalue problem
@@ -148,9 +142,9 @@ function [df, rr, psi] = text1r_wv_states(dat, cper, cpar, f0, f2r, fB, mode, NN
   for i = 1:length(df)
     if psi(1,i) < 0; psi(:,i) = - psi(:,i); end
     if ZBC
-      loc(i) = abs( psi(end-1,i)/psi(1,i) );
+      loc(i) = abs(psi(end-1,i)) / max(abs(diff(psi(:,i))));
     else
-      loc(i) = abs( psi(end,i)/psi(1,i) );
+      loc(i) = abs(psi(end,i)/max(psi(:,i)) );
     end
   end
   loc = loc > 0.01;

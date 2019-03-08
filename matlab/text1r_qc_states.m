@@ -17,23 +17,27 @@
 % Nmax - Max number of states to return (default 1000).
 % Nex  - Max number of non-local states to return (default 0).
 
-function df = text1r_qc_states(dat, cper, cpar, f0, f2r, nu_b, mode, NN, Nmax, Nex)
+function df = text1r_qc_states(dat, cper, cpar, f0, fprof, nu_b, mode, NN, Nmax, Nex)
   format long;
   if (nargin < 8) Nmax = 1000; end
   if (nargin < 9) Nex  = 0; end
-
-  rr = linspace(dat.rr(1),dat.rr(end), NN)';
-  an = interp1(dat.rr, dat.an, rr);
-  bn = interp1(dat.rr, dat.bn, rr);
-  dr=(rr(end)-rr(1))/(length(rr)-1);
 
   % For mode=0 f0 is larmor frequency in the center
   % frequency shifts are calculated from this level
   % For mode=1,2 f0 is a frequency.
   w0 = 2*pi*f0;
   wB = 2*pi*nu_b;
-  wr = 2*pi*f2r*rr.^2;
+  wprof = 2*pi*fprof;
   H0 = dat.H; % for mode 2
+
+  rr = linspace(dat.rr(1),dat.rr(end), NN)';
+  an = interp1(dat.rr, dat.an, rr);
+  bn = interp1(dat.rr, dat.bn, rr);
+  if length(wprof)>1
+    wprof = interp1(dat.rr, wprof, rr);
+  end
+  dr=(rr(end)-rr(1))/(length(rr)-1);
+
 
   simple = mode<0;
   consth = abs(mode)==1;
@@ -55,10 +59,10 @@ function df = text1r_qc_states(dat, cper, cpar, f0, f2r, nu_b, mode, NN, Nmax, N
     % x - frequency from larmor
     if consth
       % constant field mode
-      k2func = @(x) ((w0+x)*(x-wr)-uD)./ceff.^2;
+      k2func = @(x) ((w0+x)*(x-wprof)-uD)./ceff.^2;
     else
       % constant frequency mode
-      k2func = @(x) (w0*(x-wr)-uD)./ceff.^2;
+      k2func = @(x) (w0*(x-wprof)-uD)./ceff.^2;
     end
     zfunc1 = @(x) kint(N, rr, k2func(x));
 
