@@ -2,24 +2,23 @@
 %
 % Equation to solve:
 %    n = 1/pi int k(r) dr - 1/2
-%    k = [ w(w-wL) - 1/2 wB^2 \sin^2\beta_n ] / [c_perp^2 - (c_par^2-c_perp^2) l_r]
+%    k = [ w (w-wL) - 1/2 wB^2 \sin^2\beta_n ] / [c_perp^2 - (c_par^2-c_perp^2) l_r]
 %
 % dat - Texture parameter structure. Do not forget to calculate texture before.
 % cper, cpar - Spin-wave velocities (usually corresponds to gradient energy parameters lg1,lg2 in dat).
 % f0 - Larmor field in cell center [Hz] / frequency (usually corresponds to dat.H).
 % f2r  - d2(fL)/dr^2 across the cell (negative for usual trap) [Hz/cm^2].
 % nu_b - Leggett frequency [Hz].
-% mode - -1: simple mode: c=cper, beta_n = beta_n'*r
-%         0: constant field (default),
-%         1: constant freq,
-%         2: constant freq, recalculate texture.
+% mode - <0: simple mode: c=cper, beta_n = beta_n'*r
+%        -1,1: constant field,
+%        -2,2: constant freq,
+%        -3,3: constant freq, recalculate texture.
 % NN   - interpolate texture to different grid size
 % Nmax - Max number of states to return (default 1000).
 % Nex  - Max number of non-local states to return (default 0).
 
 function df = text1r_qc_states(dat, cper, cpar, f0, f2r, nu_b, mode, NN, Nmax, Nex)
   format long;
-  if (nargin < 7) mode = 0; end
   if (nargin < 8) Nmax = 1000; end
   if (nargin < 9) Nex  = 0; end
 
@@ -28,27 +27,33 @@ function df = text1r_qc_states(dat, cper, cpar, f0, f2r, nu_b, mode, NN, Nmax, N
   bn = interp1(dat.rr, dat.bn, rr);
   dr=(rr(end)-rr(1))/(length(rr)-1);
 
-  % texture-dependent values:
-  % velocity of transverse spin waves propagating
-  % along cell radius, dipolar potential
-  if mode ~= -1
-    ceff=f_ceff(an, bn, cpar, cper);
-    uD = 0.5 * (2*pi*nu_b)^2 * sin(bn).^2;
-  else
-    ceff=cper;
-    uD = 0.5 * (2*pi*nu_b)^2 * (dat.db0*rr).^2;
-  end
-
   % For mode=0 f0 is larmor frequency in the center
   % frequency shifts are calculated from this level
   % For mode=1,2 f0 is a frequency.
   w0 = 2*pi*f0;
+  wB = 2*pi*nu_b;
   wr = 2*pi*f2r*rr.^2;
   H0 = dat.H; % for mode 2
 
+  simple = mode<0;
+  consth = abs(mode)==1;
+  atext  = abs(mode)==3;
+
+  % texture-dependent values:
+  % velocity of transverse spin waves propagating
+  % along cell radius, dipolar potential
+  if simple
+    ceff=cper;
+    uD = 0.5 * wB^2 * (dat.db0*rr).^2;
+  else
+    ceff=f_ceff(an, bn, cpar, cper);
+    uD = 0.5 * wB^2 * sin(bn).^2;
+  end
+
+
   for N=0:Nmax-1
     % x - frequency from larmor
-    if mode == 0
+    if consth
       % constant field mode
       k2func = @(x) ((w0+x)*(x-wr)-uD)./ceff.^2;
     else
@@ -60,8 +65,8 @@ function df = text1r_qc_states(dat, cper, cpar, f0, f2r, nu_b, mode, NN, Nmax, N
     if N>0 dwp = dw(N); else dwp = 0; end
     dw(N+1) = fzero(zfunc1, dwp);
 
-    % in mode==2 recalculate the texture and update frequency shift
-    if mode == 2
+    % recalculate the texture and update frequency shift
+    if atext
        dat.H = H0 - dw(N+1)/he3_gyro;
        dat = text1r_minimize(dat);
        an = interp1(dat.rr, dat.an, rr);
@@ -69,7 +74,7 @@ function df = text1r_qc_states(dat, cper, cpar, f0, f2r, nu_b, mode, NN, Nmax, N
        dr=(rr(end)-rr(1))/(length(rr)-1);
        % update uD and ceff:
        ceff=f_ceff(an,bn, cpar, cper);
-       uD = 0.5 * (2*pi*nu_b)^2 * sin(bn).^2;
+       uD = 0.5 * wB^2 * sin(bn).^2;
        dw(N+1) = fzero(zfunc1, dw(N+1));
     end
 
