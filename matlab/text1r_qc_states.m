@@ -12,7 +12,6 @@
 % mode - <0: simple mode: c=cper, beta_n = beta_n'*r
 %        -1,1: constant field,
 %        -2,2: constant freq,
-%        -3,3: constant freq, recalculate texture.
 % NN   - interpolate texture to different grid size
 % Nmax - Max number of states to return (default 1000).
 % Nex  - Max number of non-local states to return (default 0).
@@ -28,7 +27,6 @@ function df = text1r_qc_states(dat, cper, cpar, f0, fprof, nu_b, mode, NN, Nmax,
   w0 = 2*pi*f0;
   wB = 2*pi*nu_b;
   wprof = 2*pi*fprof;
-  H0 = dat.H; % for mode 2
 
   rr = linspace(dat.rr(1),dat.rr(end), NN)';
   an = interp1(dat.rr, dat.an, rr);
@@ -38,10 +36,8 @@ function df = text1r_qc_states(dat, cper, cpar, f0, fprof, nu_b, mode, NN, Nmax,
   end
   dr=(rr(end)-rr(1))/(length(rr)-1);
 
-
   simple = mode<0;
   consth = abs(mode)==1;
-  atext  = abs(mode)==3;
 
   % texture-dependent values:
   % velocity of transverse spin waves propagating
@@ -66,21 +62,8 @@ function df = text1r_qc_states(dat, cper, cpar, f0, fprof, nu_b, mode, NN, Nmax,
     end
     zfunc1 = @(x) kint(N, rr, k2func(x));
 
-    if N>0 dwp = dw(N); else dwp = 0; end
+    if N>0 dwp = dw(N); else dwp = 1; end
     dw(N+1) = fzero(zfunc1, dwp);
-
-    % recalculate the texture and update frequency shift
-    if atext
-       dat.H = H0 - dw(N+1)/he3_gyro;
-       dat = text1r_minimize(dat);
-       an = interp1(dat.rr, dat.an, rr);
-       bn = interp1(dat.rr, dat.bn, rr);
-       dr=(rr(end)-rr(1))/(length(rr)-1);
-       % update uD and ceff:
-       ceff=f_ceff(an,bn, cpar, cper);
-       uD = 0.5 * wB^2 * sin(bn).^2;
-       dw(N+1) = fzero(zfunc1, dw(N+1));
-    end
 
     % check localization
     k2 = k2func(dw(N+1));
