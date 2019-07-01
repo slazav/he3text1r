@@ -216,7 +216,7 @@
         real*8 w(lw)
         logical check_size
         external text1r_mfunc
-        integer nn,i
+        integer nn,i,j
 
         ! additional parameters (default values, do not change)
         integer MAXIT, MAXFUN
@@ -244,11 +244,19 @@
 
         if (check_size()) return
         call text1r_text2x(text_n, text_an, text_bn, x)
+
         do i=1,20 ! we need several runs to catch small energy changes for flat textures
           call lmqn(text_err, nn,x,text_energy,ex,w,lw, &
                 text1r_mfunc,msglev, &
                 MAXIT, MAXFUN, ETA, STEPMX, ACCRCY, XTOL)
           if (text_err.eq.0) goto 10
+          if (i.eq.20) continue
+          do j=1,text_n
+            ! calculation fails if initial conditions exactly
+            ! corresponds to the energy minimum. Try to go away:
+            text_an(j) = text_an(j) + 0.001
+            call text1r_text2x(text_n, text_an, text_bn, x)
+          enddo
         enddo
         write(*,*) "ERROR CODE = ", text_err, " after ", i, " iterations"
 10      call text1r_x2text(text_n, text_an, text_bn, x)
