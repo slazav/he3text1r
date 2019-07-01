@@ -14,6 +14,7 @@ ARR(bl)  /* polar angle of the l vector [rad] */
 
 DBL(R)   /* Cell radius [cm] */
 DBL(H)   /* Magnetic field [G] */
+DBL(d2H) /* Quadratic term for magnetic field d^2H/dr^2 [G/cm^2] */
 
 DBL(a)   /* Textural dipole-field parameter a [erg/cm^3 G^-2] */
 DBL(b)   /* Textural dipole surface parameter b [erg/cm^2] */

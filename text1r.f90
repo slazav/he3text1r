@@ -33,6 +33,7 @@
         text_lo  = 0D0
         text_r = r
         text_h = const_2pi*nu0/he3_gyro
+        text_d2h = 0
         text_n = n
         text_err = 0
         text_bnd = 0
@@ -168,6 +169,7 @@
         write (fd,102) '#  Number of points n = ', text_n
         write (fd,101) '#  Cell radius r = ', text_r,   ' cm'
         write (fd,101) '#  Mag.field   H = ', text_H,   ' G'
+        write (fd,101) '#        d2H/dr2 = ', text_d2H, ' G/cm^2'
         write (fd,101) '#          (nu_0 = ', text_H*20.0378D0/2D0/acos(0D0), ' kHz)'
         write (fd,101) '#  lambda_D      = ', text_ld,  ' erg/cm3'
         write (fd,101) '#  Field par. a  = ', text_a,   ' erg/cm^3 1/G^2'
@@ -316,7 +318,7 @@
           text_n,text_an,text_bn, 1D-10)
         do i=2,text_n
           call text1r_ebulk_selfcheck( &
-            text_an(i), text_bn(i), text_bm(i), &
+            text_rr(i), text_an(i), text_bn(i), text_bm(i), &
                  text_vz(i), text_vr(i), text_vf(i), &
                  text_lz(i), text_lr(i), text_lf(i), &
                  text_w(i), 1D-3, 1D-4)
@@ -524,7 +526,7 @@
 
           ! bulk energy at the i point
           if (i.eq.1) then
-            call text1r_ebulk(a(i),b(i), text_bm(i), &
+            call text1r_ebulk(i*dx, a(i),b(i), text_bm(i), &
                  text_vz(i), text_vr(i), text_vf(i), &
                  text_lz(i), text_lr(i), text_lf(i), &
                  text_w(i), E1, E1a, E1b)
@@ -534,7 +536,7 @@
             E1b=E2b
           endif
           ! bulk energy at the i+1 point
-          call text1r_ebulk(a(i+1),b(i+1), text_bm(i+1), &
+          call text1r_ebulk((i+1)*dx, a(i+1),b(i+1), text_bm(i+1), &
                text_vz(i+1), text_vr(i+1), text_vf(i+1), &
                text_lz(i+1), text_lr(i+1), text_lf(i+1), &
                text_w(i+1), E2, E2a, E2b)
@@ -591,7 +593,8 @@
 
           ! bulk energy at the n+1 point; use all parameters from the
           ! n point
-          call text1r_ebulk(text_abnd, text_bbnd, text_bm(n), &
+          call text1r_ebulk(text_r,text_abnd, text_bbnd, &
+               text_bm(n), &
                text_vz(n), text_vr(n), text_vf(n), &
                text_lz(n), text_lr(n), text_lf(n), &
                text_w(n), E2, E2a, E2b)
@@ -678,15 +681,15 @@
 !!   lo for non-zero rotation
 !!   vd for non-zero flow
 !!   de and xi
-      subroutine text1r_ebulk(a,b, bm, vz,vr,vf, lz,lr,lf, w,&
+      subroutine text1r_ebulk(r, a,b, bm, vz,vr,vf, lz,lr,lf, w,&
                           E,Ea,Eb)
         implicit none
         include 'text1r.fh'
-        real*8 a,b,E,Ea,Eb
+        real*8 r,a,b,E,Ea,Eb
         real*8 bm, vz,vr,vf, lz,lr,lf, w
         real*8 nz,nr,nf, rzz,rzr,rzf
         real*8 sin_a, sin_b, cos_a, cos_b, cos2b, sin2b
-        real*8 con1, con2, help, c,s
+        real*8 con1, con2, help, c,s, H
 
         real*8 s3,s5,vd
 
@@ -723,7 +726,8 @@
         Eb = Eb + sin2b
 
         ! spin-orbit free energy
-        help = 15D0 * text_ld / text_a / text_h**2  * sin(bm/2D0)**2
+        H = text_h + text_d2h*r**2
+        help = 15D0 * text_ld / text_a / H**2  * sin(bm/2D0)**2
         E = E + help * sin_b**2
         Eb = Eb + help * sin2b
 
@@ -752,23 +756,23 @@
       end
 
 ! Self test for ebulk derivatives
-      subroutine text1r_ebulk_selfcheck(a,b, bm, vz,vr,vf, lz,lr,lf, w, d, e)
+      subroutine text1r_ebulk_selfcheck(r,a,b, bm, vz,vr,vf, lz,lr,lf, w, d, e)
         implicit none
-        real*8 a,b,d,e
+        real*8 r,a,b,d,e
         real*8 E1,Ea1,Eb1
         real*8 E2,Ea2,Eb2
         real*8 der1,der2
         real*8 bm, vz,vr,vf, lz,lr,lf, w
 
-        call text1r_ebulk(a,b, bm, vz,vr,vf, lz,lr,lf, w, E1,Ea1,Eb1)
-        call text1r_ebulk(a+d,b, bm, vz,vr,vf, lz,lr,lf, w, E2,Ea2,Eb2)
+        call text1r_ebulk(r,a,b, bm, vz,vr,vf, lz,lr,lf, w, E1,Ea1,Eb1)
+        call text1r_ebulk(r,a+d,b, bm, vz,vr,vf, lz,lr,lf, w, E2,Ea2,Eb2)
         der1=(E2-E1)/d
         der2=(Ea2+Ea1)/2D0
         if ( dabs( der1/der2 - 1D0 ) > e ) then
           write(*,*) 'text1r_ebulk_selfcheck failed for dE/da:'
           write(*,*) ' a: ', a, ' b: ', b, ' (E2-E1)/da: ', der1, ' Ea: ', der2
         endif
-        call text1r_ebulk(a,b+d, bm, vz,vr,vf, lz,lr,lf, w, E2,Ea2,Eb2)
+        call text1r_ebulk(r,a,b+d, bm, vz,vr,vf, lz,lr,lf, w, E2,Ea2,Eb2)
         der1=(E2-E1)/d
         der2=(Eb2+Eb1)/2D0
         if ( dabs( der1/der2 - 1D0 ) > e ) then
@@ -787,6 +791,7 @@
         implicit none
         include 'text1r.fh'
         real*8 r,a,b,da,db,E,Ea,Eb,Eda,Edb
+        real*8 H
         real*8 sin_a, sin_b, cos_a, cos_b
         real*8 con1, con2, con3, help
         real*8 s3,s5
@@ -805,8 +810,9 @@
         Eda = 0D0
         Edb = 0D0
 
+        H = text_h + text_d2h*r**2
         con1 = 5D0*(text_lg2 + text_lg1/2D0) &
-                /text_a/text_H**2/text_r**2
+                /text_a/H**2/text_r**2
 
         E = E + con1*(db**2 + (sin_b**2)*da**2 + (sin_b**2)/r**2) ! (\nabla n)^2 (?)
         Eda = Eda + con1*2D0*da*sin_b**2
@@ -814,7 +820,7 @@
         Eb = Eb + con1 * 2D0*sin_b*cos_b*(da**2 + 1D0/r**2)
 
         con2 = - 5D0/16D0*text_lg1 &
-                 /text_a/text_H**2/text_r**2
+                 /text_a/H**2/text_r**2
 
         help=(s5*sin_a-s3*cos_b*cos_a)*db + &
              (s5*cos_b*cos_a+s3*sin_a)*sin_b*da + &
@@ -835,7 +841,7 @@
           - s5*sin_b*sin_a*sin_b/r)
 
         con3 = 5D0*text_lg1 &
-               /text_a/text_H**2/text_r**2
+               /text_a/H**2/text_r**2
 
         E   = E   + con3 * cos_b*sin_b*db/r
         Edb = Edb + con3 * cos_b*sin_b/r
@@ -895,15 +901,16 @@
         include 'text1r.fh'
         integer i
         real*8 a,b,E,Ea,Eb
-        real*8 nr,nf,nz
+        real*8 nr,nf,nz, H
         real*8 sin_a, sin_b, cos_a, cos_b, sin2b,cos2b
 
         real*8 s3,s5,de, xir,dar,bar
 
+        H = text_h + text_d2h*text_r**2
         dar = text_d / (text_a*text_r)
-        bar = text_b / (text_a*text_H**2*text_r)
+        bar = text_b / (text_a*H**2*text_r)
         de  = text_lg1/text_lg2 - 2D0
-        xir = sqrt(65D0/8D0 * text_lg2/text_a)/ text_H / text_r
+        xir = sqrt(65D0/8D0 * text_lg2/text_a)/ H / text_r
 
         s3 = sqrt(3D0)
         s5 = sqrt(5D0)
