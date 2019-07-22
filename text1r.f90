@@ -164,7 +164,7 @@
   101   format (A,E12.4,A)
   102   format (A,I4)
         fd=100
-        open(fd, file='result.dat')
+        open(fd, file=fname)
         write (fd,101) '# Texture parameters: '
         write (fd,102) '#  Number of points n = ', text_n
         write (fd,101) '#  Cell radius r = ', text_r,   ' cm'
